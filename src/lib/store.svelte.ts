@@ -9,6 +9,12 @@ import {
   type TagInfo,
   type UserConfig,
 } from "./api";
+import {
+  loadRecents,
+  persistRecents,
+  sortRecents,
+  type RecentProject,
+} from "./recents";
 
 export type ViewKey =
   | "changes"
@@ -33,6 +39,7 @@ class AppStore {
   tags = $state<TagInfo[]>([]);
   stashes = $state<StashInfo[]>([]);
   user = $state<UserConfig | null>(null);
+  recents = $state<RecentProject[]>(sortRecents(loadRecents()));
 
   view = $state<ViewKey>("changes");
   diff = $state<DiffTarget | null>(null);
@@ -78,12 +85,39 @@ class AppStore {
     }
   }
 
+  private touchRecent(path: string, name: string) {
+    const existing = this.recents.find((r) => r.path === path);
+    const entry: RecentProject = {
+      path,
+      name,
+      pinned: existing?.pinned ?? false,
+      lastOpened: Date.now(),
+    };
+    const next = this.recents.filter((r) => r.path !== path);
+    next.push(entry);
+    this.recents = sortRecents(next).slice(0, 30);
+    persistRecents(this.recents);
+  }
+
+  togglePin(path: string) {
+    this.recents = sortRecents(
+      this.recents.map((r) => (r.path === path ? { ...r, pinned: !r.pinned } : r)),
+    );
+    persistRecents(this.recents);
+  }
+
+  removeRecent(path: string) {
+    this.recents = this.recents.filter((r) => r.path !== path);
+    persistRecents(this.recents);
+  }
+
   async openRepo(path: string) {
     const info = await this.run(() => git.openRepository(path));
     if (info) {
       this.repo = info;
       this.view = "changes";
       await this.refreshAll();
+      this.touchRecent(info.path, info.name);
       this.notify(`Opened ${info.name}`, "success");
     }
   }
@@ -94,6 +128,7 @@ class AppStore {
       this.repo = info;
       this.view = "changes";
       await this.refreshAll();
+      this.touchRecent(info.path, info.name);
       this.notify(`Initialized repository at ${info.path}`, "success");
     }
   }
@@ -104,6 +139,7 @@ class AppStore {
       this.repo = info;
       this.view = "changes";
       await this.refreshAll();
+      this.touchRecent(info.path, info.name);
       this.notify(`Cloned into ${info.path}`, "success");
     }
   }

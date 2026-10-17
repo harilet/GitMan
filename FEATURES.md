@@ -10,6 +10,10 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 - [x] **Open** an existing repository from a native folder picker
 - [x] **Initialize** a new repository in any directory
 - [x] **Clone** a remote repository (URL + destination picker)
+- [x] **Recent projects** list on the start screen for one-click access
+- [x] **Pin / unpin** projects (pinned projects sort to the top)
+- [x] Remove projects from the recent list
+- [x] Recent projects persisted locally across sessions
 - [x] Close the current repository and return to the start screen
 - [x] Repository summary: name, full path, current branch, HEAD short SHA, dirty flag
 - [x] Automatic re-detection of repository state on refresh
@@ -88,6 +92,8 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 ## UI / UX
 
 - [x] Modern dark theme with a consistent design system
+- [x] Toolbar **branch switcher**: shows the current branch name and opens a
+      searchable dropdown of local + remote branches for quick switching
 - [x] Left navigation rail with live item counts
 - [x] Top toolbar with Fetch / Pull / Push / Refresh / Close
 - [x] Busy spinner and toast notifications (info / success / error)

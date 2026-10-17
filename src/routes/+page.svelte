@@ -9,6 +9,7 @@
   import Stashes from "$lib/components/Stashes.svelte";
   import Settings from "$lib/components/Settings.svelte";
   import DiffView from "$lib/components/DiffView.svelte";
+  import BranchSwitcher from "$lib/components/BranchSwitcher.svelte";
 
   let showSettings = $state(false);
 
@@ -38,10 +39,8 @@
     <header class="toolbar">
       <div class="repo">
         <span class="name">{app.repo.name}</span>
-        <span class="branch" title={app.repo.path}>
-          <span class="dot"></span>{app.repo.branch}
-          {#if app.repo.dirty}<span class="badge yellow">modified</span>{/if}
-        </span>
+        <BranchSwitcher />
+        {#if app.repo.dirty}<span class="badge yellow">modified</span>{/if}
       </div>
 
       <div class="spacer"></div>
@@ -155,22 +154,6 @@
   .repo .name {
     font-weight: 600;
     font-size: 14px;
-  }
-  .branch {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 10px;
-    border-radius: 12px;
-    background: var(--panel-3);
-    border: 1px solid var(--border);
-    font-size: 12px;
-  }
-  .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--green);
   }
   .spacer {
     flex: 1;
