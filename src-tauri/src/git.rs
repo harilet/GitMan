@@ -1,37 +1,14 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Mutex;
 
 use git2::build::CheckoutBuilder;
 use git2::{
     BranchType, DiffFormat, DiffOptions, IndexAddOption, Repository, Status, StatusOptions,
 };
 use serde::Serialize;
-use tauri::State;
-
-pub struct AppState {
-    pub repo: Mutex<Option<PathBuf>>,
-}
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self {
-            repo: Mutex::new(None),
-        }
-    }
-}
 
 fn err<E: std::fmt::Display>(e: E) -> String {
     e.to_string()
-}
-
-fn repo_path(state: &State<AppState>) -> Result<PathBuf, String> {
-    state
-        .repo
-        .lock()
-        .unwrap()
-        .clone()
-        .ok_or_else(|| "No repository is currently open".to_string())
 }
 
 fn open(path: &Path) -> Result<Repository, String> {
@@ -176,32 +153,25 @@ fn repo_info(path: &Path, repo: &Repository) -> RepoInfo {
 }
 
 #[tauri::command]
-pub fn open_repository(path: String, state: State<AppState>) -> Result<RepoInfo, String> {
+pub fn open_repository(path: String) -> Result<RepoInfo, String> {
     let p = PathBuf::from(&path);
     let repo = open(&p)?;
     // Worktrees expose the main workdir via workdir().
     let info_path = repo.workdir().unwrap_or(&p).to_path_buf();
-    *state.repo.lock().unwrap() = Some(info_path.clone());
     Ok(repo_info(&info_path, &repo))
 }
 
 #[tauri::command]
-pub fn init_repository(path: String, state: State<AppState>) -> Result<RepoInfo, String> {
+pub fn init_repository(path: String) -> Result<RepoInfo, String> {
     let p = PathBuf::from(&path);
     std::fs::create_dir_all(&p).map_err(err)?;
     let repo = Repository::init(&p).map_err(|e| e.message().to_string())?;
-    *state.repo.lock().unwrap() = Some(p.clone());
     Ok(repo_info(&p, &repo))
 }
 
 #[tauri::command]
-pub fn close_repository(state: State<AppState>) {
-    *state.repo.lock().unwrap() = None;
-}
-
-#[tauri::command]
-pub fn get_repository_info(state: State<AppState>) -> Result<RepoInfo, String> {
-    let path = repo_path(&state)?;
+pub fn get_repository_info(repository: String) -> Result<RepoInfo, String> {
+    let path = PathBuf::from(&repository);
     let repo = open(&path)?;
     Ok(repo_info(&path, &repo))
 }
@@ -210,7 +180,6 @@ pub fn get_repository_info(state: State<AppState>) -> Result<RepoInfo, String> {
 pub fn clone_repository(
     url: String,
     destination: String,
-    state: State<AppState>,
 ) -> Result<RepoInfo, String> {
     let dest = PathBuf::from(&destination);
     if let Some(parent) = dest.parent() {
@@ -224,7 +193,6 @@ pub fn clone_repository(
         return Err(String::from_utf8_lossy(&out.stderr).to_string());
     }
     let repo = open(&dest)?;
-    *state.repo.lock().unwrap() = Some(dest.clone());
     Ok(repo_info(&dest, &repo))
 }
 
@@ -262,8 +230,8 @@ fn status_letters(s: Status) -> (String, bool, bool) {
 }
 
 #[tauri::command]
-pub fn get_status(state: State<AppState>) -> Result<Vec<FileStatus>, String> {
-    let path = repo_path(&state)?;
+pub fn get_status(repository: String) -> Result<Vec<FileStatus>, String> {
+    let path = PathBuf::from(&repository);
     let repo = open(&path)?;
     let mut opts = StatusOptions::new();
     opts.include_untracked(true)
@@ -302,15 +270,15 @@ fn stage_path(repo: &Repository, path: &str) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn stage_file(path: String, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn stage_file(path: String, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     stage_path(&repo, &path)
 }
 
 #[tauri::command]
-pub fn unstage_file(path: String, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn unstage_file(path: String, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let head = repo.head().ok().and_then(|h| h.peel_to_tree().ok());
     let target = head.as_ref().map(|t| t.as_object());
@@ -320,8 +288,8 @@ pub fn unstage_file(path: String, state: State<AppState>) -> Result<(), String> 
 }
 
 #[tauri::command]
-pub fn stage_all(state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn stage_all(repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let mut index = repo.index().map_err(err)?;
     index
@@ -333,8 +301,8 @@ pub fn stage_all(state: State<AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn unstage_all(state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn unstage_all(repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let head = repo.head().ok().and_then(|h| h.peel_to_tree().ok());
     let target = head.as_ref().map(|t| t.as_object());
@@ -344,8 +312,8 @@ pub fn unstage_all(state: State<AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn discard_file(path: String, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn discard_file(path: String, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
 
     let status = repo.status_file(Path::new(&path)).map_err(err)?;
@@ -375,9 +343,9 @@ pub fn commit(
     message: String,
     author_name: Option<String>,
     author_email: Option<String>,
-    state: State<AppState>,
+    repository: String,
 ) -> Result<String, String> {
-    let p = repo_path(&state)?;
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     if message.trim().is_empty() {
         return Err("Commit message cannot be empty".to_string());
@@ -406,8 +374,8 @@ pub fn commit(
 }
 
 #[tauri::command]
-pub fn get_log(limit: Option<usize>, state: State<AppState>) -> Result<Vec<CommitInfo>, String> {
-    let p = repo_path(&state)?;
+pub fn get_log(limit: Option<usize>, repository: String) -> Result<Vec<CommitInfo>, String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let limit = limit.unwrap_or(200);
 
@@ -455,9 +423,9 @@ fn diff_to_string(repo: &Repository, diff: git2::Diff) -> Result<String, String>
 pub fn get_worktree_diff(
     path: Option<String>,
     staged: bool,
-    state: State<AppState>,
+    repository: String,
 ) -> Result<String, String> {
-    let repo_root = repo_path(&state)?;
+    let repo_root = PathBuf::from(&repository);
     let repo = open(&repo_root)?;
     let mut opts = DiffOptions::new();
     opts.include_typechange(true)
@@ -480,8 +448,8 @@ pub fn get_worktree_diff(
 }
 
 #[tauri::command]
-pub fn get_commit_diff(oid: String, state: State<AppState>) -> Result<String, String> {
-    let p = repo_path(&state)?;
+pub fn get_commit_diff(oid: String, repository: String) -> Result<String, String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let oid = git2::Oid::from_str(&oid).map_err(err)?;
     let commit = repo.find_commit(oid).map_err(err)?;
@@ -498,8 +466,8 @@ pub fn get_commit_diff(oid: String, state: State<AppState>) -> Result<String, St
 }
 
 #[tauri::command]
-pub fn list_branches(state: State<AppState>) -> Result<Vec<BranchInfo>, String> {
-    let p = repo_path(&state)?;
+pub fn list_branches(repository: String) -> Result<Vec<BranchInfo>, String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let mut out = Vec::new();
     for item in repo.branches(None).map_err(err)? {
@@ -525,9 +493,9 @@ pub fn list_branches(state: State<AppState>) -> Result<Vec<BranchInfo>, String> 
 pub fn create_branch(
     name: String,
     checkout: bool,
-    state: State<AppState>,
+    repository: String,
 ) -> Result<(), String> {
-    let p = repo_path(&state)?;
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let head = repo
         .head()
@@ -542,8 +510,8 @@ pub fn create_branch(
 }
 
 #[tauri::command]
-pub fn delete_branch(name: String, force: bool, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn delete_branch(name: String, force: bool, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     if force {
         let refname = format!("refs/heads/{name}");
@@ -615,15 +583,15 @@ fn do_checkout(repo: &Repository, name: &str) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn checkout_branch(name: String, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn checkout_branch(name: String, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     checkout_branch_impl(&repo, &name)
 }
 
 #[tauri::command]
-pub fn merge_branch(name: String, state: State<AppState>) -> Result<String, String> {
-    let p = repo_path(&state)?;
+pub fn merge_branch(name: String, repository: String) -> Result<String, String> {
+    let p = PathBuf::from(&repository);
     let out = Command::new("git")
         .current_dir(&p)
         .args(["merge", "--no-edit", &name])
@@ -639,8 +607,8 @@ pub fn merge_branch(name: String, state: State<AppState>) -> Result<String, Stri
 }
 
 #[tauri::command]
-pub fn list_remotes(state: State<AppState>) -> Result<Vec<RemoteInfo>, String> {
-    let p = repo_path(&state)?;
+pub fn list_remotes(repository: String) -> Result<Vec<RemoteInfo>, String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let remotes = repo.remotes().map_err(err)?;
     let mut out = Vec::new();
@@ -659,8 +627,8 @@ pub fn list_remotes(state: State<AppState>) -> Result<Vec<RemoteInfo>, String> {
 }
 
 #[tauri::command]
-pub fn add_remote(name: String, url: String, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn add_remote(name: String, url: String, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     repo.remote(&name, &url)
         .map_err(|e| e.message().to_string())?;
@@ -668,8 +636,8 @@ pub fn add_remote(name: String, url: String, state: State<AppState>) -> Result<(
 }
 
 #[tauri::command]
-pub fn remove_remote(name: String, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn remove_remote(name: String, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     repo.remote_delete(&name).map_err(|e| e.message().to_string())
 }
@@ -690,15 +658,15 @@ fn run_git(dir: &Path, args: &[&str]) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn fetch(remote: Option<String>, state: State<AppState>) -> Result<String, String> {
-    let p = repo_path(&state)?;
+pub fn fetch(remote: Option<String>, repository: String) -> Result<String, String> {
+    let p = PathBuf::from(&repository);
     let remote = remote.unwrap_or_else(|| "--all".to_string());
     run_git(&p, &["fetch", &remote, "--prune"])
 }
 
 #[tauri::command]
-pub fn pull(remote: Option<String>, state: State<AppState>) -> Result<String, String> {
-    let p = repo_path(&state)?;
+pub fn pull(remote: Option<String>, repository: String) -> Result<String, String> {
+    let p = PathBuf::from(&repository);
     match remote {
         Some(r) if !r.is_empty() => run_git(&p, &["pull", &r]),
         _ => run_git(&p, &["pull"]),
@@ -710,9 +678,9 @@ pub fn push(
     remote: Option<String>,
     branch: Option<String>,
     set_upstream: bool,
-    state: State<AppState>,
+    repository: String,
 ) -> Result<String, String> {
-    let p = repo_path(&state)?;
+    let p = PathBuf::from(&repository);
     let mut args: Vec<String> = vec!["push".to_string()];
     if set_upstream {
         args.push("-u".to_string());
@@ -729,8 +697,8 @@ pub fn push(
 }
 
 #[tauri::command]
-pub fn list_tags(state: State<AppState>) -> Result<Vec<TagInfo>, String> {
-    let p = repo_path(&state)?;
+pub fn list_tags(repository: String) -> Result<Vec<TagInfo>, String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let mut out = Vec::new();
     repo.tag_foreach(|oid, name| {
@@ -768,9 +736,9 @@ pub fn create_tag(
     name: String,
     message: Option<String>,
     target: Option<String>,
-    state: State<AppState>,
+    repository: String,
 ) -> Result<(), String> {
-    let p = repo_path(&state)?;
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let obj = match target {
         Some(t) if !t.is_empty() => {
@@ -798,16 +766,16 @@ pub fn create_tag(
 }
 
 #[tauri::command]
-pub fn delete_tag(name: String, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn delete_tag(name: String, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     repo.tag_delete(&name)
         .map_err(|e| e.message().to_string())
 }
 
 #[tauri::command]
-pub fn list_stashes(state: State<AppState>) -> Result<Vec<StashInfo>, String> {
-    let p = repo_path(&state)?;
+pub fn list_stashes(repository: String) -> Result<Vec<StashInfo>, String> {
+    let p = PathBuf::from(&repository);
     let mut repo = open(&p)?;
     let mut out = Vec::new();
     repo.stash_foreach(|index, message, oid| {
@@ -823,8 +791,8 @@ pub fn list_stashes(state: State<AppState>) -> Result<Vec<StashInfo>, String> {
 }
 
 #[tauri::command]
-pub fn create_stash(message: Option<String>, state: State<AppState>) -> Result<String, String> {
-    let p = repo_path(&state)?;
+pub fn create_stash(message: Option<String>, repository: String) -> Result<String, String> {
+    let p = PathBuf::from(&repository);
     let mut repo = open(&p)?;
     let sig = repo.signature().map_err(|_| { 
         "Git user.name / user.email are not configured".to_string()
@@ -837,32 +805,32 @@ pub fn create_stash(message: Option<String>, state: State<AppState>) -> Result<S
 }
 
 #[tauri::command]
-pub fn apply_stash(index: usize, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn apply_stash(index: usize, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let mut repo = open(&p)?;
     repo.stash_apply(index, None)
         .map_err(|e| e.message().to_string())
 }
 
 #[tauri::command]
-pub fn pop_stash(index: usize, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn pop_stash(index: usize, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let mut repo = open(&p)?;
     repo.stash_pop(index, None)
         .map_err(|e| e.message().to_string())
 }
 
 #[tauri::command]
-pub fn drop_stash(index: usize, state: State<AppState>) -> Result<(), String> {
-    let p = repo_path(&state)?;
+pub fn drop_stash(index: usize, repository: String) -> Result<(), String> {
+    let p = PathBuf::from(&repository);
     let mut repo = open(&p)?;
     repo.stash_drop(index)
         .map_err(|e| e.message().to_string())
 }
 
 #[tauri::command]
-pub fn get_user_config(state: State<AppState>) -> Result<UserConfig, String> {
-    let p = repo_path(&state)?;
+pub fn get_user_config(repository: String) -> Result<UserConfig, String> {
+    let p = PathBuf::from(&repository);
     let repo = open(&p)?;
     let cfg = repo.config().map_err(err)?;
     Ok(UserConfig {
@@ -876,9 +844,9 @@ pub fn set_user_config(
     name: String,
     email: String,
     global: bool,
-    state: State<AppState>,
+    repository: String,
 ) -> Result<(), String> {
-    let p = repo_path(&state)?;
+    let p = PathBuf::from(&repository);
     let scope = if global { "--global" } else { "--local" };
     if !name.trim().is_empty() {
         run_git(&p, &["config", scope, "user.name", name.trim()])?;

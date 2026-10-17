@@ -91,6 +91,12 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 
 ## UI / UX
 
+- [x] **Custom frameless window**: native decorations disabled; own title bar with
+      drag region and minimize / maximize-restore / close controls
+- [x] **Multi-project tabs** in the title bar — open several repositories at once,
+      each with an independent session (status, history, branches, diff, view)
+- [x] Tab shows project name, a dirty indicator, a per-tab busy spinner and a close button
+- [x] `＋` tab returns to the start screen to open another project
 - [x] Modern dark theme with a consistent design system
 - [x] Toolbar **branch switcher**: shows the current branch name and opens a
       searchable dropdown of local + remote branches for quick switching
@@ -104,9 +110,11 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 ## Technical notes
 
 - Backend: `src-tauri/src/git.rs` exposes the full command API; `lib.rs` wires
-  plugins, managed state and the invoke handler.
+  plugins and the invoke handler. Commands are **stateless** — each takes the
+  target repository path, so multiple repositories can be driven concurrently.
 - Frontend: `src/lib/api.ts` (typed IPC wrappers), `src/lib/store.svelte.ts`
-  (reactive store), and components under `src/lib/components/`.
+  (`RepoSession` per open project + `AppStore` facade/session manager), and
+  components under `src/lib/components/`.
 - `git2` is built with `default-features = false` — no bundled TLS/SSH is
   required because all network traffic goes through the `git` CLI.
 

@@ -63,53 +63,83 @@ export interface UserConfig {
 export const git = {
   openRepository: (path: string) => invoke<RepoInfo>("open_repository", { path }),
   initRepository: (path: string) => invoke<RepoInfo>("init_repository", { path }),
-  closeRepository: () => invoke<void>("close_repository"),
-  getRepositoryInfo: () => invoke<RepoInfo>("get_repository_info"),
   cloneRepository: (url: string, destination: string) =>
     invoke<RepoInfo>("clone_repository", { url, destination }),
+  getRepositoryInfo: (repository: string) =>
+    invoke<RepoInfo>("get_repository_info", { repository }),
 
-  getStatus: () => invoke<FileStatus[]>("get_status"),
-  stageFile: (path: string) => invoke<void>("stage_file", { path }),
-  unstageFile: (path: string) => invoke<void>("unstage_file", { path }),
-  stageAll: () => invoke<void>("stage_all"),
-  unstageAll: () => invoke<void>("unstage_all"),
-  discardFile: (path: string) => invoke<void>("discard_file", { path }),
-  commit: (message: string, authorName?: string, authorEmail?: string) =>
-    invoke<string>("commit", { message, authorName, authorEmail }),
+  getStatus: (repository: string) => invoke<FileStatus[]>("get_status", { repository }),
+  stageFile: (repository: string, path: string) =>
+    invoke<void>("stage_file", { repository, path }),
+  unstageFile: (repository: string, path: string) =>
+    invoke<void>("unstage_file", { repository, path }),
+  stageAll: (repository: string) => invoke<void>("stage_all", { repository }),
+  unstageAll: (repository: string) => invoke<void>("unstage_all", { repository }),
+  discardFile: (repository: string, path: string) =>
+    invoke<void>("discard_file", { repository, path }),
+  commit: (
+    repository: string,
+    message: string,
+    authorName?: string,
+    authorEmail?: string,
+  ) => invoke<string>("commit", { repository, message, authorName, authorEmail }),
 
-  getLog: (limit = 300) => invoke<CommitInfo[]>("get_log", { limit }),
-  getWorktreeDiff: (path: string | null, staged: boolean) =>
-    invoke<string>("get_worktree_diff", { path, staged }),
-  getCommitDiff: (oid: string) => invoke<string>("get_commit_diff", { oid }),
+  getLog: (repository: string, limit = 300) =>
+    invoke<CommitInfo[]>("get_log", { repository, limit }),
+  getWorktreeDiff: (repository: string, path: string | null, staged: boolean) =>
+    invoke<string>("get_worktree_diff", { repository, path, staged }),
+  getCommitDiff: (repository: string, oid: string) =>
+    invoke<string>("get_commit_diff", { repository, oid }),
 
-  listBranches: () => invoke<BranchInfo[]>("list_branches"),
-  createBranch: (name: string, checkout: boolean) =>
-    invoke<void>("create_branch", { name, checkout }),
-  deleteBranch: (name: string, force: boolean) =>
-    invoke<void>("delete_branch", { name, force }),
-  checkoutBranch: (name: string) => invoke<void>("checkout_branch", { name }),
-  mergeBranch: (name: string) => invoke<string>("merge_branch", { name }),
+  listBranches: (repository: string) =>
+    invoke<BranchInfo[]>("list_branches", { repository }),
+  createBranch: (repository: string, name: string, checkout: boolean) =>
+    invoke<void>("create_branch", { repository, name, checkout }),
+  deleteBranch: (repository: string, name: string, force: boolean) =>
+    invoke<void>("delete_branch", { repository, name, force }),
+  checkoutBranch: (repository: string, name: string) =>
+    invoke<void>("checkout_branch", { repository, name }),
+  mergeBranch: (repository: string, name: string) =>
+    invoke<string>("merge_branch", { repository, name }),
 
-  listRemotes: () => invoke<RemoteInfo[]>("list_remotes"),
-  addRemote: (name: string, url: string) => invoke<void>("add_remote", { name, url }),
-  removeRemote: (name: string) => invoke<void>("remove_remote", { name }),
-  fetch: (remote: string | null) => invoke<string>("fetch", { remote }),
-  pull: (remote: string | null) => invoke<string>("pull", { remote }),
-  push: (remote: string | null, branch: string | null, setUpstream: boolean) =>
-    invoke<string>("push", { remote, branch, setUpstream }),
+  listRemotes: (repository: string) => invoke<RemoteInfo[]>("list_remotes", { repository }),
+  addRemote: (repository: string, name: string, url: string) =>
+    invoke<void>("add_remote", { repository, name, url }),
+  removeRemote: (repository: string, name: string) =>
+    invoke<void>("remove_remote", { repository, name }),
+  fetch: (repository: string, remote: string | null) =>
+    invoke<string>("fetch", { repository, remote }),
+  pull: (repository: string, remote: string | null) =>
+    invoke<string>("pull", { repository, remote }),
+  push: (
+    repository: string,
+    remote: string | null,
+    branch: string | null,
+    setUpstream: boolean,
+  ) => invoke<string>("push", { repository, remote, branch, setUpstream }),
 
-  listTags: () => invoke<TagInfo[]>("list_tags"),
-  createTag: (name: string, message: string | null, target: string | null) =>
-    invoke<void>("create_tag", { name, message, target }),
-  deleteTag: (name: string) => invoke<void>("delete_tag", { name }),
+  listTags: (repository: string) => invoke<TagInfo[]>("list_tags", { repository }),
+  createTag: (
+    repository: string,
+    name: string,
+    message: string | null,
+    target: string | null,
+  ) => invoke<void>("create_tag", { repository, name, message, target }),
+  deleteTag: (repository: string, name: string) =>
+    invoke<void>("delete_tag", { repository, name }),
 
-  listStashes: () => invoke<StashInfo[]>("list_stashes"),
-  createStash: (message: string | null) => invoke<string>("create_stash", { message }),
-  applyStash: (index: number) => invoke<void>("apply_stash", { index }),
-  popStash: (index: number) => invoke<void>("pop_stash", { index }),
-  dropStash: (index: number) => invoke<void>("drop_stash", { index }),
+  listStashes: (repository: string) => invoke<StashInfo[]>("list_stashes", { repository }),
+  createStash: (repository: string, message: string | null) =>
+    invoke<string>("create_stash", { repository, message }),
+  applyStash: (repository: string, index: number) =>
+    invoke<void>("apply_stash", { repository, index }),
+  popStash: (repository: string, index: number) =>
+    invoke<void>("pop_stash", { repository, index }),
+  dropStash: (repository: string, index: number) =>
+    invoke<void>("drop_stash", { repository, index }),
 
-  getUserConfig: () => invoke<UserConfig>("get_user_config"),
-  setUserConfig: (name: string, email: string, global: boolean) =>
-    invoke<void>("set_user_config", { name, email, global }),
+  getUserConfig: (repository: string) =>
+    invoke<UserConfig>("get_user_config", { repository }),
+  setUserConfig: (repository: string, name: string, email: string, global: boolean) =>
+    invoke<void>("set_user_config", { repository, name, email, global }),
 };

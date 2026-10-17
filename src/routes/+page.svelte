@@ -10,6 +10,7 @@
   import Settings from "$lib/components/Settings.svelte";
   import DiffView from "$lib/components/DiffView.svelte";
   import BranchSwitcher from "$lib/components/BranchSwitcher.svelte";
+  import TitleBar from "$lib/components/TitleBar.svelte";
 
   let showSettings = $state(false);
 
@@ -32,10 +33,13 @@
 
 <svelte:window onkeydown={onkey} />
 
-{#if !app.repo}
-  <Welcome />
-{:else}
-  <div class="app">
+<div class="root">
+  <TitleBar />
+  <div class="main">
+    {#if !app.repo}
+      <Welcome />
+    {:else}
+      <div class="app">
     <header class="toolbar">
       <div class="repo">
         <span class="name">{app.repo.name}</span>
@@ -119,7 +123,9 @@
       {/if}
     </div>
   </div>
-{/if}
+    {/if}
+  </div>
+</div>
 
 {#if app.toast}
   <div class="toast {app.toast.kind}">{app.toast.text}</div>
@@ -130,10 +136,24 @@
 {/if}
 
 <style>
-  .app {
+  .root {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    overflow: hidden;
+  }
+  .main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
+  .app {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
     overflow: hidden;
   }
   .toolbar {

@@ -138,7 +138,8 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    min-height: 100vh;
+    width: 100%;
+    height: 100%;
     padding: 48px 24px;
     overflow: auto;
   }
