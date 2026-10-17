@@ -1,5 +1,6 @@
 import {
   git,
+  type BranchGraph,
   type BranchInfo,
   type CommitInfo,
   type FileStatus,
@@ -19,6 +20,7 @@ import {
 export type ViewKey =
   | "changes"
   | "history"
+  | "graph"
   | "branches"
   | "remotes"
   | "tags"
@@ -45,6 +47,8 @@ export class RepoSession {
   status = $state<FileStatus[]>([]);
   log = $state<CommitInfo[]>([]);
   branches = $state<BranchInfo[]>([]);
+  graph = $state<BranchGraph | null>(null);
+  graphIncludeRemote = $state(false);
   remotes = $state<RemoteInfo[]>([]);
   tags = $state<TagInfo[]>([]);
   stashes = $state<StashInfo[]>([]);
@@ -99,6 +103,7 @@ export class RepoSession {
       this.refreshStatus(),
       this.refreshLog(),
       this.refreshBranches(),
+      this.refreshGraph(),
       this.refreshRemotes(),
       this.refreshTags(),
       this.refreshStashes(),
@@ -124,6 +129,16 @@ export class RepoSession {
   async refreshBranches() {
     if (!this.repo) return;
     this.branches = await git.listBranches(this.path);
+  }
+
+  async refreshGraph() {
+    if (!this.repo) return;
+    this.graph = await git.getBranchGraph(this.path, this.graphIncludeRemote);
+  }
+
+  async setGraphRemote(includeRemote: boolean) {
+    this.graphIncludeRemote = includeRemote;
+    await this.refreshGraph();
   }
 
   async refreshRemotes() {
@@ -401,6 +416,12 @@ class AppStore {
   get branches() {
     return this.active?.branches ?? [];
   }
+  get graph() {
+    return this.active?.graph ?? null;
+  }
+  get graphIncludeRemote() {
+    return this.active?.graphIncludeRemote ?? false;
+  }
   get localBranches() {
     return this.active?.localBranches ?? [];
   }
@@ -446,6 +467,9 @@ class AppStore {
   }
   loadCommit(commit: CommitInfo) {
     return this.active?.loadCommit(commit);
+  }
+  setGraphRemote(includeRemote: boolean) {
+    return this.active?.setGraphRemote(includeRemote);
   }
   stage(path: string) {
     return this.active?.stage(path);

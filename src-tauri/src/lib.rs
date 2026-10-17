@@ -21,6 +21,7 @@ pub fn run() {
             git::get_worktree_diff,
             git::get_commit_diff,
             git::list_branches,
+            git::get_branch_graph,
             git::create_branch,
             git::delete_branch,
             git::checkout_branch,

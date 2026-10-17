@@ -3,6 +3,7 @@
   import Welcome from "$lib/components/Welcome.svelte";
   import Changes from "$lib/components/Changes.svelte";
   import History from "$lib/components/History.svelte";
+  import Graph from "$lib/components/Graph.svelte";
   import Branches from "$lib/components/Branches.svelte";
   import Remotes from "$lib/components/Remotes.svelte";
   import Tags from "$lib/components/Tags.svelte";
@@ -17,6 +18,7 @@
   const nav: { key: ViewKey; label: string; icon: string; count: () => number }[] = [
     { key: "changes", label: "Changes", icon: "±", count: () => app.status.length },
     { key: "history", label: "History", icon: "☰", count: () => app.log.length },
+    { key: "graph", label: "Graph", icon: "⑃", count: () => app.graph?.nodes.length ?? 0 },
     { key: "branches", label: "Branches", icon: "⎇", count: () => app.localBranches.length },
     { key: "remotes", label: "Remotes", icon: "⇅", count: () => app.remotes.length },
     { key: "tags", label: "Tags", icon: "⚑", count: () => app.tags.length },
@@ -96,6 +98,8 @@
           <Changes />
         {:else if app.view === "history"}
           <History />
+        {:else if app.view === "graph"}
+          <Graph />
         {:else if app.view === "branches"}
           <Branches />
         {:else if app.view === "remotes"}

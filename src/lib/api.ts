@@ -60,6 +60,21 @@ export interface UserConfig {
   email: string;
 }
 
+export interface BranchGraphNode {
+  name: string;
+  isHead: boolean;
+  isRemote: boolean;
+  tip: string;
+  tipShort: string;
+  parent: string | null;
+  mergesInto: string[];
+}
+
+export interface BranchGraph {
+  nodes: BranchGraphNode[];
+  head: string;
+}
+
 export const git = {
   openRepository: (path: string) => invoke<RepoInfo>("open_repository", { path }),
   initRepository: (path: string) => invoke<RepoInfo>("init_repository", { path }),
@@ -93,6 +108,8 @@ export const git = {
 
   listBranches: (repository: string) =>
     invoke<BranchInfo[]>("list_branches", { repository }),
+  getBranchGraph: (repository: string, includeRemote: boolean) =>
+    invoke<BranchGraph>("get_branch_graph", { repository, includeRemote }),
   createBranch: (repository: string, name: string, checkout: boolean) =>
     invoke<void>("create_branch", { repository, name, checkout }),
   deleteBranch: (repository: string, name: string, force: boolean) =>

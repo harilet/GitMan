@@ -489,11 +489,229 @@ pub fn list_branches(repository: String) -> Result<Vec<BranchInfo>, String> {
     Ok(out)
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BranchGraphNode {
+    name: String,
+    is_head: bool,
+    is_remote: bool,
+    tip: String,
+    tip_short: String,
+    /// Branch this one was forked from (its "parent"), if determinable.
+    parent: Option<String>,
+    /// Branches this branch has been merged into.
+    merges_into: Vec<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BranchGraph {
+    nodes: Vec<BranchGraphNode>,
+    head: String,
+}
+
+#[tauri::command]
+pub fn get_branch_graph(
+    repository: String,
+    include_remote: bool,
+) -> Result<BranchGraph, String> {
+    let p = PathBuf::from(&repository);
+    let repo = open(&p)?;
+
+    struct Br {
+        name: String,
+        is_head: bool,
+        is_remote: bool,
+        tip: git2::Oid,
+    }
+
+    let mut branches: Vec<Br> = Vec::new();
+    for item in repo.branches(None).map_err(err)? {
+        let (branch, btype) = item.map_err(err)?;
+        let is_remote = btype == BranchType::Remote;
+        if is_remote && !include_remote {
+            continue;
+        }
+        let name = match branch.name().ok().flatten() {
+            Some(n) => n.to_string(),
+            None => continue,
+        };
+        if is_remote && name.ends_with("/HEAD") {
+            continue;
+        }
+        let tip = match branch.get().target() {
+            Some(t) => t,
+            None => continue,
+        };
+        branches.push(Br {
+            name,
+            is_head: branch.is_head(),
+            is_remote,
+            tip,
+        });
+    }
+
+    let (head_name, _, _) = current_branch(&repo);
+
+    // First-parent chain of each branch, used to tell "merged into" apart from
+    // a plain linear continuation.
+    let mut first_parent: Vec<std::collections::HashSet<git2::Oid>> =
+        Vec::with_capacity(branches.len());
+    for b in &branches {
+        let mut set = std::collections::HashSet::new();
+        let mut cur = repo.find_commit(b.tip).ok();
+        while let Some(c) = cur {
+            if !set.insert(c.id()) {
+                break;
+            }
+            cur = if c.parent_count() > 0 {
+                c.parent(0).ok()
+            } else {
+                None
+            };
+        }
+        first_parent.push(set);
+    }
+
+    let mut nodes: Vec<BranchGraphNode> = Vec::with_capacity(branches.len());
+    for (i, b) in branches.iter().enumerate() {
+        // Parent: the branch whose line most recently joins B's own first-parent
+        // line. Handles linear descendants, forks from a since-advanced branch,
+        // and forks from a branch that later merged B back in.
+        let mut parent: Option<(String, i64)> = None;
+        for (j, a) in branches.iter().enumerate() {
+            if i == j || a.tip == b.tip {
+                continue;
+            }
+            let a_is_ancestor = repo.graph_descendant_of(b.tip, a.tip).unwrap_or(false);
+            let b_is_ancestor = repo.graph_descendant_of(a.tip, b.tip).unwrap_or(false);
+
+            let shared: Option<git2::Oid> = if a_is_ancestor {
+                // A's tip is in B's history: a real ancestor only if it is on
+                // B's first-parent line, otherwise A was merged into B.
+                if first_parent[i].contains(&a.tip) {
+                    Some(a.tip)
+                } else {
+                    None
+                }
+            } else if b_is_ancestor {
+                // A contains B (e.g. B was merged into A). Find the point on
+                // A's first-parent line where B originally forked off.
+                let mut cur = repo.find_commit(a.tip).ok();
+                let mut found = None;
+                while let Some(c) = cur {
+                    if c.id() == b.tip
+                        || repo.graph_descendant_of(b.tip, c.id()).unwrap_or(false)
+                    {
+                        found = Some(c.id());
+                        break;
+                    }
+                    cur = if c.parent_count() > 0 {
+                        c.parent(0).ok()
+                    } else {
+                        None
+                    };
+                }
+                match found {
+                    Some(sp) if sp != b.tip => Some(sp),
+                    _ => None,
+                }
+            } else {
+                // Divergent branches: they forked at their merge-base.
+                match repo.merge_base(a.tip, b.tip) {
+                    Ok(mb) if first_parent[i].contains(&mb) => Some(mb),
+                    _ => None,
+                }
+            };
+
+            if let Some(sp) = shared {
+                let t = repo
+                    .find_commit(sp)
+                    .map(|c| c.time().seconds())
+                    .unwrap_or(0);
+                match &parent {
+                    Some((_, pt)) if *pt >= t => {}
+                    _ => parent = Some((a.name.clone(), t)),
+                }
+            }
+        }
+        let mut parent_name = parent.map(|(n, _)| n);
+
+        // Break 2-cycles: if A chose B as its parent too, keep only the link to
+        // the branch with the older tip (the likely base branch).
+        if let Some(pname) = &parent_name {
+            if let Some(pj) = branches.iter().position(|x| &x.name == pname) {
+                if pj != i {
+                    let p_time = repo
+                        .find_commit(branches[pj].tip)
+                        .map(|c| c.time().seconds())
+                        .unwrap_or(0);
+                    let b_time = repo
+                        .find_commit(b.tip)
+                        .map(|c| c.time().seconds())
+                        .unwrap_or(0);
+                    let b_is_ancestor_p =
+                        repo.graph_descendant_of(b.tip, branches[pj].tip).unwrap_or(false);
+                    if !b_is_ancestor_p && b_time > p_time {
+                        // B's tip is newer; assume the other branch is the base,
+                        // so drop this link.
+                        parent_name = None;
+                    }
+                }
+            }
+        }
+
+        // Merges: branch C contains this branch's tip through a merge commit
+        // (i.e. reachable, but not on C's first-parent line). Only report direct
+        // merges, not ones already folded into C via an earlier merge.
+        let mut merges_into = Vec::new();
+        for (j, c) in branches.iter().enumerate() {
+            if i == j || c.tip == b.tip {
+                continue;
+            }
+            if first_parent[j].contains(&b.tip) {
+                continue;
+            }
+            if !repo.graph_descendant_of(c.tip, b.tip).unwrap_or(false) {
+                continue;
+            }
+            // If B is already in C's first-parent line, this is a transitive merge.
+            let c_first_parent = repo.find_commit(c.tip).ok().and_then(|cc| {
+                if cc.parent_count() > 0 {
+                    cc.parent(0).ok()
+                } else {
+                    None
+                }
+            });
+            if let Some(fp) = &c_first_parent {
+                if repo.graph_descendant_of(fp.id(), b.tip).unwrap_or(false) {
+                    continue;
+                }
+            }
+            merges_into.push(c.name.clone());
+        }
+
+        nodes.push(BranchGraphNode {
+            name: b.name.clone(),
+            is_head: b.is_head,
+            is_remote: b.is_remote,
+            tip: b.tip.to_string(),
+            tip_short: short(b.tip),
+            parent: parent_name,
+            merges_into,
+        });
+    }
+
+    Ok(BranchGraph {
+        nodes,
+        head: head_name,
+    })
+}
+
 #[tauri::command]
 pub fn create_branch(
     name: String,
-    checkout: bool,
-    repository: String,
+    checkout: bool,    repository: String,
 ) -> Result<(), String> {
     let p = PathBuf::from(&repository);
     let repo = open(&p)?;
@@ -856,6 +1074,7 @@ pub fn set_user_config(
     }
     Ok(())
 }
+
 
 
 

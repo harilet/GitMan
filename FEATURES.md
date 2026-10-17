@@ -58,6 +58,10 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 
 ## Branches
 
+- [x] **Branch graph** view: layed-out topology showing which branch each one was
+      forked from (solid edges) and which branches are merged into which (dashed
+      arrows), with current branch highlighted
+- [x] Optional inclusion of remote-tracking branches in the graph
 - [x] List local branches (current branch marked) and remote-tracking branches
 - [x] Show each local branch's upstream
 - [x] **Create** a branch (optionally check it out immediately)
