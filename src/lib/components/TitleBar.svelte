@@ -25,7 +25,7 @@
 <div class="titlebar" ondblclick={onDoubleClick}>
   <div class="brand" data-tauri-drag-region>
     <span class="logo">⎇</span>
-    <span class="appname">Git GUI</span>
+    <span class="appname">GitMan</span>
   </div>
 
   <div class="tabs">

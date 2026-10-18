@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "git-gui",
+  "productName": "GitMan",
   "version": "0.1.0",
-  "identifier": "com.cyber.git-gui",
+  "identifier": "com.cyber.gitman",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Git GUI",
+        "title": "GitMan",
         "width": 1280,
         "height": 820,
         "minWidth": 900,

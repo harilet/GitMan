@@ -5,7 +5,7 @@ export interface RecentProject {
   lastOpened: number;
 }
 
-const KEY = "git-gui.recents";
+const KEY = "gitman.recents";
 const MAX = 30;
 
 export function loadRecents(): RecentProject[] {

@@ -1,7 +1,7 @@
 {
-  "name": "git-gui",
+  "name": "gitman-desktop",
   "version": "0.1.0",
-  "description": "",
+  "description": "GitMan - a desktop Git client",
   "type": "module",
   "scripts": {
     "dev": "vite dev",

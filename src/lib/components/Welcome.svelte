@@ -44,7 +44,7 @@
   <div class="panel">
     <div class="hero">
       <div class="logo">⎇</div>
-      <h1>Git GUI</h1>
+      <h1>GitMan</h1>
       <p class="muted">
         Browse, review and manage your local and remote Git repositories.
       </p>
