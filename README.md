@@ -11,8 +11,7 @@ The app combines `git2` (libgit2) for fast local repository operations with the
 system `git` binary for network operations, so SSH agents, credential helpers and
 existing Git configuration work as expected.
 
-Repository: [github.com/harilet/git-gui](https://github.com/harilet/git-gui)
-(the remote still uses the project's previous name).
+Repository: [github.com/harilet/git-gui]([https://github.com/harilet/GitMan](https://github.com/harilet/GitMan))
 
 ## Features
 
