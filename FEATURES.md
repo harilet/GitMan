@@ -41,6 +41,7 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 - [x] Commit filter (by message, author or SHA)
 - [x] Ref badges on commits (current branch, branches, remote branches, tags)
 - [x] View the full patch of any commit (diff against first parent)
+- [x] Paginated log (300 commits per page) with **Load more**
 
 ## Diffs
 
@@ -64,11 +65,12 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 - [x] Optional inclusion of remote-tracking branches in the graph
 - [x] List local branches (current branch marked) and remote-tracking branches
 - [x] Show each local branch's upstream
+- [x] Ahead/behind counts for the current branch
 - [x] **Create** a branch (optionally check it out immediately)
 - [x] **Checkout** a local branch
 - [x] **Checkout** a remote branch → creates a local tracking branch automatically
 - [x] **Merge** a branch into the current one (`git merge --no-edit`)
-- [x] **Delete** a branch, with force-delete confirmation
+- [x] **Delete** a branch; safe delete for merged branches, explicit force for unmerged
 
 ## Remotes
 
@@ -76,15 +78,18 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 - [x] **Add** a remote (name + URL)
 - [x] **Remove** a remote
 - [x] **Fetch** a single remote or all remotes (`--prune`)
-- [x] **Pull** a remote
+- [x] **Auto-fetch** on open (throttled) to prune stale remote-tracking branches
+- [x] **Pull** a remote (`--prune`)
 - [x] **Push** to a remote; sets upstream (`-u`) automatically when the branch has none
+- [x] **Push** targets the current branch's upstream remote (falls back to the first remote)
+- [x] Live progress for clone / fetch / pull / push
 - [x] Current-branch tracking status indicator
 
 ## Tags
 
 - [x] List tags with name, target commit and message
 - [x] Distinguish **annotated** vs **lightweight** tags
-- [x] **Create** a tag (optional message → annotated, optional target commit, default HEAD)
+- [x] **Create** a tag (optional message → annotated, optional target commit/ref, default HEAD)
 - [x] **Delete** a tag
 
 ## Stashes
@@ -129,5 +134,4 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 - [ ] Merge conflict resolution UI
 - [ ] Blame view and file history
 - [ ] Commit signing (GPG/SSH)
-- [ ] Multi-repository / recent-repositories list
 - [ ] Submodule support

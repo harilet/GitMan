@@ -15,6 +15,20 @@
 
   let showSettings = $state(false);
 
+  const currentBranch = $derived(app.branches.find((b) => b.isHead));
+  const toolbarRemote = $derived(
+    app.remotes.find(
+      (r) =>
+        currentBranch?.upstream === r.name ||
+        currentBranch?.upstream?.startsWith(r.name + "/"),
+    )?.name ??
+      app.remotes[0]?.name ??
+      null,
+  );
+  const cannotPush = $derived(
+    !app.repo || app.repo.detached || app.repo.unborn,
+  );
+
   const nav: { key: ViewKey; label: string; icon: string; count: () => number }[] = [
     { key: "changes", label: "Changes", icon: "±", count: () => app.status.length },
     { key: "history", label: "History", icon: "☰", count: () => app.log.length },
@@ -53,14 +67,22 @@
 
       {#if app.remotes.length}
         <button class="btn" onclick={() => app.fetch(null)}>Fetch</button>
-        <button class="btn" onclick={() => app.pull(null)}>Pull</button>
         <button
           class="btn"
+          title={currentBranch?.upstream
+            ? `Pull from ${currentBranch.upstream}`
+            : "Current branch has no upstream"}
+          disabled={!currentBranch?.upstream}
+          onclick={() => app.pull(null)}>Pull</button
+        >
+        <button
+          class="btn"
+          disabled={cannotPush}
           onclick={() =>
             app.push(
-              app.remotes[0]?.name ?? null,
+              toolbarRemote,
               app.repo?.branch ?? null,
-              !app.branches.find((b) => b.isHead)?.upstream,
+              !currentBranch?.upstream,
             )}>Push</button
         >
       {/if}
@@ -72,6 +94,9 @@
         title="Git identity (name / email)"
         onclick={() => (showSettings = true)}>⚙ Identity</button
       >
+      {#if app.progress}
+        <span class="progress" title={app.progress}>{app.progress}</span>
+      {/if}
       {#if app.busy}<span class="spinner" title="Working…"></span>{/if}
     </header>
 
@@ -295,6 +320,14 @@
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
+  }
+  .progress {
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    color: var(--muted);
   }
   @keyframes spin {
     to {

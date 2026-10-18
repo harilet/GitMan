@@ -9,6 +9,7 @@ pub fn run() {
             git::open_repository,
             git::init_repository,
             git::get_repository_info,
+            git::get_snapshot,
             git::clone_repository,
             git::get_status,
             git::stage_file,

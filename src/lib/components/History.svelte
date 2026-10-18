@@ -10,7 +10,7 @@
     for (const b of app.branches) {
       if (!b.target) continue;
       const list = map.get(b.target) ?? [];
-      const label = b.isRemote ? b.name : b.name;
+      const label = b.name;
       list.push({ label, kind: b.isHead ? "head" : b.isRemote ? "remote" : "branch" });
       map.set(b.target, list);
     }
@@ -63,6 +63,11 @@
     {:else}
       <div class="empty">No commits yet</div>
     {/each}
+    {#if app.logHasMore}
+      <button class="btn load-more" onclick={() => app.loadMoreLog()}>
+        Load more commits
+      </button>
+    {/if}
   </div>
 </div>
 
@@ -82,6 +87,10 @@
   .commits {
     overflow: auto;
     flex: 1;
+  }
+  .load-more {
+    display: block;
+    margin: 10px auto;
   }
   .commit {
     display: flex;

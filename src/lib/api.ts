@@ -8,6 +8,8 @@ export interface RepoInfo {
   detached: boolean;
   unborn: boolean;
   dirty: boolean;
+  ahead: number;
+  behind: number;
 }
 
 export interface FileStatus {
@@ -33,7 +35,10 @@ export interface BranchInfo {
   name: string;
   isHead: boolean;
   isRemote: boolean;
+  merged: boolean;
   upstream: string | null;
+  ahead: number;
+  behind: number;
   target: string | null;
 }
 
@@ -75,6 +80,18 @@ export interface BranchGraph {
   head: string;
 }
 
+export interface Snapshot {
+  repo: RepoInfo;
+  status: FileStatus[];
+  log: CommitInfo[];
+  branches: BranchInfo[];
+  graph: BranchGraph;
+  remotes: RemoteInfo[];
+  tags: TagInfo[];
+  stashes: StashInfo[];
+  user: UserConfig;
+}
+
 export const git = {
   openRepository: (path: string) => invoke<RepoInfo>("open_repository", { path }),
   initRepository: (path: string) => invoke<RepoInfo>("init_repository", { path }),
@@ -82,6 +99,8 @@ export const git = {
     invoke<RepoInfo>("clone_repository", { url, destination }),
   getRepositoryInfo: (repository: string) =>
     invoke<RepoInfo>("get_repository_info", { repository }),
+  getSnapshot: (repository: string, logLimit = 300, includeRemote = false) =>
+    invoke<Snapshot>("get_snapshot", { repository, logLimit, includeRemote }),
 
   getStatus: (repository: string) => invoke<FileStatus[]>("get_status", { repository }),
   stageFile: (repository: string, path: string) =>
@@ -99,8 +118,8 @@ export const git = {
     authorEmail?: string,
   ) => invoke<string>("commit", { repository, message, authorName, authorEmail }),
 
-  getLog: (repository: string, limit = 300) =>
-    invoke<CommitInfo[]>("get_log", { repository, limit }),
+  getLog: (repository: string, limit = 300, skip = 0) =>
+    invoke<CommitInfo[]>("get_log", { repository, limit, skip }),
   getWorktreeDiff: (repository: string, path: string | null, staged: boolean) =>
     invoke<string>("get_worktree_diff", { repository, path, staged }),
   getCommitDiff: (repository: string, oid: string) =>
@@ -126,8 +145,8 @@ export const git = {
     invoke<void>("remove_remote", { repository, name }),
   fetch: (repository: string, remote: string | null) =>
     invoke<string>("fetch", { repository, remote }),
-  pull: (repository: string, remote: string | null) =>
-    invoke<string>("pull", { repository, remote }),
+  pull: (repository: string, remote: string | null, branch: string | null) =>
+    invoke<string>("pull", { repository, remote, branch }),
   push: (
     repository: string,
     remote: string | null,

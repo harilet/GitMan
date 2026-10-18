@@ -75,7 +75,7 @@
     </label>
     <label class="field">
       <span>Target commit (optional, default HEAD)</span>
-      <input class="input mono" placeholder="full commit SHA" bind:value={tagTarget} />
+      <input class="input mono" placeholder="SHA or ref" bind:value={tagTarget} />
     </label>
     {#snippet footer()}
       <button class="btn" onclick={() => (showCreate = false)}>Cancel</button>

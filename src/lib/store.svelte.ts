@@ -1,3 +1,4 @@
+import { listen } from "@tauri-apps/api/event";
 import {
   git,
   type BranchGraph,
@@ -34,6 +35,32 @@ export interface DiffTarget {
 
 let sessionCounter = 0;
 
+const LOG_PAGE = 300;
+const AUTO_FETCH_INTERVAL = 5 * 60 * 1000;
+const LAST_FETCH_KEY = "git-gui.lastFetch";
+
+function lastFetchedAt(path: string): number {
+  try {
+    const raw = localStorage.getItem(LAST_FETCH_KEY);
+    if (!raw) return 0;
+    const map = JSON.parse(raw);
+    return typeof map?.[path] === "number" ? map[path] : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function markFetched(path: string) {
+  try {
+    const raw = localStorage.getItem(LAST_FETCH_KEY);
+    const map = raw ? JSON.parse(raw) : {};
+    map[path] = Date.now();
+    localStorage.setItem(LAST_FETCH_KEY, JSON.stringify(map));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 /**
  * A single open repository. Every backend call is scoped to this repository's
  * path, so multiple sessions can be open (and acted upon) independently.
@@ -46,6 +73,7 @@ export class RepoSession {
   repo = $state<RepoInfo | null>(null);
   status = $state<FileStatus[]>([]);
   log = $state<CommitInfo[]>([]);
+  logHasMore = $state(false);
   branches = $state<BranchInfo[]>([]);
   graph = $state<BranchGraph | null>(null);
   graphIncludeRemote = $state(false);
@@ -94,6 +122,7 @@ export class RepoSession {
       return null;
     } finally {
       this.busy = false;
+      this.app.progress = null;
     }
   }
 
@@ -101,21 +130,23 @@ export class RepoSession {
     if (!this.repo) return;
     this.busy = true;
     try {
-      await Promise.all([
-        this.refreshStatus(),
-        this.refreshLog(),
-        this.refreshBranches(),
-        this.refreshGraph(),
-        this.refreshRemotes(),
-        this.refreshTags(),
-        this.refreshStashes(),
-      ]);
-      if (!this.user) {
-        this.user = await git.getUserConfig(this.path).catch(() => null);
-      }
-      this.repo = await git
-        .getRepositoryInfo(this.path)
-        .catch(() => this.repo);
+      const s = await git.getSnapshot(
+        this.path,
+        LOG_PAGE,
+        this.graphIncludeRemote,
+      );
+      this.status = s.status;
+      this.log = s.log;
+      this.logHasMore = s.log.length >= LOG_PAGE;
+      this.branches = s.branches;
+      this.graph = s.graph;
+      this.remotes = s.remotes;
+      this.tags = s.tags;
+      this.stashes = s.stashes;
+      this.user = s.user;
+      this.repo = s.repo;
+    } catch (e) {
+      this.app.notify(typeof e === "string" ? e : String(e), "error");
     } finally {
       this.busy = false;
     }
@@ -123,17 +154,21 @@ export class RepoSession {
 
   /**
    * Prune stale remote-tracking branches in the background when a project is
-   * opened. Failures (offline, auth, missing remote) are ignored so opening a
-   * repository never blocks or reports an error.
+   * opened. Throttled and silent: failures (offline, auth, missing remote) are
+   * ignored so opening a repository never blocks or reports an error.
    */
   async autoFetch() {
     if (!this.repo || this.remotes.length === 0) return;
+    if (Date.now() - lastFetchedAt(this.path) < AUTO_FETCH_INTERVAL) return;
     try {
       await git.fetch(this.path, null);
+      markFetched(this.path);
+      await Promise.all([this.refreshBranches(), this.refreshGraph()]);
     } catch {
-      return;
+      // Background sync: ignore errors.
+    } finally {
+      this.app.progress = null;
     }
-    await Promise.all([this.refreshBranches(), this.refreshGraph()]);
   }
 
   async refreshStatus() {
@@ -143,7 +178,19 @@ export class RepoSession {
 
   async refreshLog() {
     if (!this.repo) return;
-    this.log = await git.getLog(this.path);
+    this.log = await git.getLog(this.path, LOG_PAGE);
+    this.logHasMore = this.log.length >= LOG_PAGE;
+  }
+
+  async loadMoreLog() {
+    if (!this.repo) return;
+    const next = await this.run(() =>
+      git.getLog(this.path, LOG_PAGE, this.log.length),
+    );
+    if (next !== null) {
+      this.log = [...this.log, ...next];
+      this.logHasMore = next.length >= LOG_PAGE;
+    }
   }
 
   async refreshBranches() {
@@ -311,22 +358,18 @@ export class RepoSession {
   }
 
   async fetch(remote: string | null) {
-    const res = await this.run(
-      () => git.fetch(this.path, remote),
-      "Fetch complete",
-    );
+    const res = await this.run(() => git.fetch(this.path, remote));
     if (res !== null) {
+      markFetched(this.path);
       this.app.notify(res || "Fetch complete", "success");
       await this.refreshAll();
     }
   }
 
-  async pull(remote: string | null) {
-    const res = await this.run(
-      () => git.pull(this.path, remote),
-      "Pull complete",
-    );
+  async pull(remote: string | null, branch: string | null = null) {
+    const res = await this.run(() => git.pull(this.path, remote, branch));
     if (res !== null) {
+      markFetched(this.path);
       this.app.notify(res || "Pull complete", "success");
       await this.refreshAll();
     }
@@ -405,8 +448,20 @@ class AppStore {
   toast = $state<{ kind: "info" | "error" | "success"; text: string } | null>(
     null,
   );
+  progress = $state<string | null>(null);
   private globalBusy = $state(false);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    void listen<{ operation: string; line: string }>(
+      "git-progress",
+      (event) => {
+        this.progress = event.payload.line;
+      },
+    ).catch(() => {
+      // Progress events are best-effort.
+    });
+  }
 
   get active(): RepoSession | null {
     return this.sessions.find((s) => s.id === this.activeId) ?? null;
@@ -432,6 +487,9 @@ class AppStore {
   }
   get log() {
     return this.active?.log ?? [];
+  }
+  get logHasMore() {
+    return this.active?.logHasMore ?? false;
   }
   get branches() {
     return this.active?.branches ?? [];
@@ -478,6 +536,9 @@ class AppStore {
 
   refreshAll() {
     return this.active?.refreshAll();
+  }
+  loadMoreLog() {
+    return this.active?.loadMoreLog();
   }
   saveUserConfig(name: string, email: string, global: boolean) {
     return this.active?.saveUserConfig(name, email, global);
@@ -530,8 +591,8 @@ class AppStore {
   fetch(remote: string | null) {
     return this.active?.fetch(remote);
   }
-  pull(remote: string | null) {
-    return this.active?.pull(remote);
+  pull(remote: string | null, branch: string | null = null) {
+    return this.active?.pull(remote, branch);
   }
   push(remote: string | null, branch: string | null, setUpstream: boolean) {
     return this.active?.push(remote, branch, setUpstream);
@@ -566,6 +627,7 @@ class AppStore {
       return null;
     } finally {
       this.globalBusy = false;
+      this.progress = null;
     }
   }
 
@@ -617,7 +679,10 @@ class AppStore {
     const info = await this.runGlobal(() =>
       git.cloneRepository(url, destination),
     );
-    if (info) await this.addSession(info);
+    if (info) {
+      markFetched(info.path);
+      await this.addSession(info);
+    }
   }
 
   notify(text: string, kind: "info" | "error" | "success" = "info") {

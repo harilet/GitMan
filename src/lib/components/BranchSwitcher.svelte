@@ -35,6 +35,16 @@
   >
     <span class="dot" class:dirty={app.repo?.dirty}></span>
     <span class="name">{current}</span>
+    {#if app.repo?.ahead}
+      <span class="badge blue" title="{app.repo.ahead} commit(s) ahead"
+        >↑{app.repo.ahead}</span
+      >
+    {/if}
+    {#if app.repo?.behind}
+      <span class="badge yellow" title="{app.repo.behind} commit(s) behind"
+        >↓{app.repo.behind}</span
+      >
+    {/if}
     <span class="caret">▾</span>
   </button>
 

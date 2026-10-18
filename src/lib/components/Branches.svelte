@@ -17,12 +17,15 @@
   }
 
   async function remove(name: string, merged: boolean) {
-    const force = merged
-      ? confirm(`Force delete branch "${name}"? Unmerged commits may be lost.`)
-      : true;
-    if (merged && !force) return;
+    if (
+      !merged &&
+      !confirm(
+        `Branch "${name}" has unmerged commits. Force delete it? Unmerged commits will be lost.`,
+      )
+    )
+      return;
     if (!confirm(`Delete branch "${name}"?`)) return;
-    await app.deleteBranch(name, merged);
+    await app.deleteBranch(name, !merged);
   }
 </script>
 
@@ -44,13 +47,27 @@
           </span>
           {#if b.upstream}
             <span class="muted up">→ {b.upstream}</span>
+            {#if b.ahead}
+              <span
+                class="badge blue"
+                title="{b.ahead} commit(s) ahead of {b.upstream}"
+                >↑{b.ahead}</span
+              >
+            {/if}
+            {#if b.behind}
+              <span
+                class="badge yellow"
+                title="{b.behind} commit(s) behind {b.upstream}"
+                >↓{b.behind}</span
+              >
+            {/if}
           {/if}
         </div>
         <div class="actions">
           {#if !b.isHead}
             <button class="btn sm" onclick={() => app.checkout(b.name)}>Checkout</button>
             <button class="btn sm" onclick={() => app.merge(b.name)}>Merge</button>
-            <button class="btn danger sm" onclick={() => remove(b.name, true)}>Delete</button>
+            <button class="btn danger sm" onclick={() => remove(b.name, b.merged)}>Delete</button>
           {:else}
             <span class="badge green">current</span>
           {/if}

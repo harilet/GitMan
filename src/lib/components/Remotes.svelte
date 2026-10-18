@@ -10,6 +10,14 @@
   const currentBranch = $derived(app.branches.find((b) => b.isHead));
   const hasUpstream = $derived(!!currentBranch?.upstream);
 
+  function trackedBy(remoteName: string) {
+    const upstream = currentBranch?.upstream;
+    return (
+      !!upstream &&
+      (upstream === remoteName || upstream.startsWith(remoteName + "/"))
+    );
+  }
+
   async function add() {
     if (!remoteName.trim() || !remoteUrl.trim()) return;
     const ok = await app.addRemote(remoteName.trim(), remoteUrl.trim());
@@ -34,14 +42,24 @@
         </div>
         <div class="actions">
           <button class="btn sm" onclick={() => app.fetch(remote.name)}>Fetch</button>
-          <button class="btn sm" onclick={() => app.pull(remote.name)}>Pull</button>
           <button
             class="btn sm"
+            disabled={!currentBranch}
+            onclick={() =>
+              app.pull(
+                remote.name,
+                trackedBy(remote.name) ? null : (currentBranch?.name ?? null),
+              )}
+            >Pull</button
+          >
+          <button
+            class="btn sm"
+            disabled={!currentBranch}
             onclick={() =>
               app.push(
                 remote.name,
                 currentBranch?.name ?? null,
-                !hasUpstream,
+                !trackedBy(remote.name),
               )}>Push</button
           >
           <button
@@ -63,6 +81,20 @@
         <span class="mono">{currentBranch.name}</span>
         {#if hasUpstream}
           <span class="badge green">tracking {currentBranch.upstream}</span>
+          {#if app.repo?.ahead}
+            <span
+              class="badge blue"
+              title="{app.repo.ahead} commit(s) ahead of {currentBranch.upstream}"
+              >↑ {app.repo.ahead} ahead</span
+            >
+          {/if}
+          {#if app.repo?.behind}
+            <span
+              class="badge yellow"
+              title="{app.repo.behind} commit(s) behind {currentBranch.upstream}"
+              >↓ {app.repo.behind} behind</span
+            >
+          {/if}
         {:else}
           <span class="badge yellow">no upstream</span>
         {/if}
