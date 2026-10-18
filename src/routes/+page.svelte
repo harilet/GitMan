@@ -72,7 +72,6 @@
         title="Git identity (name / email)"
         onclick={() => (showSettings = true)}>⚙ Identity</button
       >
-      <button class="btn ghost" onclick={() => app.closeRepo()}>Close</button>
       {#if app.busy}<span class="spinner" title="Working…"></span>{/if}
     </header>
 

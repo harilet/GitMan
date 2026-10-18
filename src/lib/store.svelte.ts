@@ -99,21 +99,41 @@ export class RepoSession {
 
   async refreshAll() {
     if (!this.repo) return;
-    await Promise.all([
-      this.refreshStatus(),
-      this.refreshLog(),
-      this.refreshBranches(),
-      this.refreshGraph(),
-      this.refreshRemotes(),
-      this.refreshTags(),
-      this.refreshStashes(),
-    ]);
-    if (!this.user) {
-      this.user = await git.getUserConfig(this.path).catch(() => null);
+    this.busy = true;
+    try {
+      await Promise.all([
+        this.refreshStatus(),
+        this.refreshLog(),
+        this.refreshBranches(),
+        this.refreshGraph(),
+        this.refreshRemotes(),
+        this.refreshTags(),
+        this.refreshStashes(),
+      ]);
+      if (!this.user) {
+        this.user = await git.getUserConfig(this.path).catch(() => null);
+      }
+      this.repo = await git
+        .getRepositoryInfo(this.path)
+        .catch(() => this.repo);
+    } finally {
+      this.busy = false;
     }
-    this.repo = await git
-      .getRepositoryInfo(this.path)
-      .catch(() => this.repo);
+  }
+
+  /**
+   * Prune stale remote-tracking branches in the background when a project is
+   * opened. Failures (offline, auth, missing remote) are ignored so opening a
+   * repository never blocks or reports an error.
+   */
+  async autoFetch() {
+    if (!this.repo || this.remotes.length === 0) return;
+    try {
+      await git.fetch(this.path, null);
+    } catch {
+      return;
+    }
+    await Promise.all([this.refreshBranches(), this.refreshGraph()]);
   }
 
   async refreshStatus() {
@@ -554,6 +574,7 @@ class AppStore {
     if (existing) {
       this.activeId = existing.id;
       await existing.refreshAll();
+      void existing.autoFetch();
       this.touchRecent(info.path, info.name);
       this.notify(`Switched to ${info.name}`, "success");
       return;
@@ -562,6 +583,7 @@ class AppStore {
     this.sessions = [...this.sessions, session];
     this.activeId = session.id;
     await session.refreshAll();
+    void session.autoFetch();
     this.touchRecent(info.path, info.name);
     this.notify(`Opened ${info.name}`, "success");
   }
