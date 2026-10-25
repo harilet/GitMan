@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { confirm } from "@tauri-apps/plugin-dialog";
   import { app } from "../store.svelte";
 
   let message = $state("");
@@ -35,8 +36,8 @@
           <button class="btn sm" onclick={() => app.popStash(stash.index)}>Pop</button>
           <button
             class="btn danger sm"
-            onclick={() => {
-              if (confirm(`Drop stash #${stash.index}?`)) app.dropStash(stash.index);
+            onclick={async () => {
+              if (await confirm(`Drop stash #${stash.index}?`)) app.dropStash(stash.index);
             }}>Drop</button
           >
         </div>

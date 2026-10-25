@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { confirm } from "@tauri-apps/plugin-dialog";
   import { app } from "../store.svelte";
   import { autofocus } from "../actions";
   import Modal from "./Modal.svelte";
@@ -19,12 +20,12 @@
   async function remove(name: string, merged: boolean) {
     if (
       !merged &&
-      !confirm(
+      !(await confirm(
         `Branch "${name}" has unmerged commits. Force delete it? Unmerged commits will be lost.`,
-      )
+      ))
     )
       return;
-    if (!confirm(`Delete branch "${name}"?`)) return;
+    if (!(await confirm(`Delete branch "${name}"?`))) return;
     await app.deleteBranch(name, !merged);
   }
 </script>

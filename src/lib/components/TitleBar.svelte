@@ -85,6 +85,7 @@
     border-bottom: 1px solid var(--border);
     user-select: none;
   }
+
   .brand {
     display: flex;
     align-items: center;
@@ -92,15 +93,18 @@
     padding: 0 12px 0 14px;
     flex: 0 0 auto;
   }
+
   .logo {
     color: var(--accent);
     font-size: 15px;
   }
+
   .appname {
     font-size: 12px;
     font-weight: 600;
     color: var(--muted);
   }
+
   .tabs {
     display: flex;
     align-items: stretch;
@@ -111,9 +115,11 @@
     max-width: 70vw;
     scrollbar-width: none;
   }
+
   .tabs::-webkit-scrollbar {
     display: none;
   }
+
   .tab {
     display: flex;
     align-items: center;
@@ -128,15 +134,18 @@
     cursor: pointer;
     flex: 0 0 auto;
   }
+
   .tab:hover {
     background: var(--panel-3);
     color: var(--text);
   }
+
   .tab.active {
     background: var(--bg);
     border-color: var(--border);
     color: var(--text);
   }
+
   .dot {
     width: 7px;
     height: 7px;
@@ -144,14 +153,17 @@
     background: var(--green);
     flex: 0 0 auto;
   }
+
   .dot.dirty {
     background: var(--yellow);
   }
+
   .tname {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  
   .pulse {
     width: 8px;
     height: 8px;

@@ -126,6 +126,21 @@ export class RepoSession {
     }
   }
 
+  private async runVoid(fn: () => Promise<void>, successMsg?: string): Promise<boolean> {
+    this.busy = true;
+    try {
+      await fn();
+      if (successMsg) this.app.notify(successMsg, "success");
+      return true;
+    } catch (e) {
+      this.app.notify(typeof e === "string" ? e : String(e), "error");
+      return false;
+    } finally {
+      this.busy = false;
+      this.app.progress = null;
+    }
+  }
+
   async refreshAll() {
     if (!this.repo) return;
     this.busy = true;
@@ -224,16 +239,16 @@ export class RepoSession {
   }
 
   async saveUserConfig(name: string, email: string, global: boolean) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.setUserConfig(this.path, name, email, global),
       "Git identity saved",
     );
-    if (ok !== null) {
+    if (ok) {
       this.user = await git
         .getUserConfig(this.path)
         .catch(() => this.user);
     }
-    return ok !== null;
+    return ok;
   }
 
   async loadWorkingDiff(path: string, staged: boolean) {
@@ -304,30 +319,30 @@ export class RepoSession {
   }
 
   async createBranch(name: string, checkout: boolean) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.createBranch(this.path, name, checkout),
       `Branch ${name} created`,
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async deleteBranch(name: string, force: boolean) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.deleteBranch(this.path, name, force),
       `Branch ${name} deleted`,
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async checkout(name: string) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.checkoutBranch(this.path, name),
       `Switched to ${name}`,
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async merge(name: string) {
@@ -340,21 +355,21 @@ export class RepoSession {
   }
 
   async addRemote(name: string, url: string) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.addRemote(this.path, name, url),
       `Remote ${name} added`,
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async removeRemote(name: string) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.removeRemote(this.path, name),
       `Remote ${name} removed`,
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async fetch(remote: string | null) {
@@ -386,21 +401,21 @@ export class RepoSession {
   }
 
   async createTag(name: string, message: string | null, target: string | null) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.createTag(this.path, name, message, target),
       `Tag ${name} created`,
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async deleteTag(name: string) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.deleteTag(this.path, name),
       `Tag ${name} deleted`,
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async createStash(message: string | null) {
@@ -413,30 +428,30 @@ export class RepoSession {
   }
 
   async applyStash(index: number) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.applyStash(this.path, index),
       "Stash applied",
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async popStash(index: number) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.popStash(this.path, index),
       "Stash popped",
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 
   async dropStash(index: number) {
-    const ok = await this.run(
+    const ok = await this.runVoid(
       () => git.dropStash(this.path, index),
       "Stash dropped",
     );
-    if (ok !== null) await this.refreshAll();
-    return ok !== null;
+    if (ok) await this.refreshAll();
+    return ok;
   }
 }
 

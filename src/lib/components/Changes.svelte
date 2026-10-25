@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { FileStatus } from "../api";
+  import { confirm } from "@tauri-apps/plugin-dialog";
   import { app } from "../store.svelte";
 
   let message = $state("");
@@ -115,9 +116,9 @@
             <button
               class="btn ghost sm act"
               title="Discard changes"
-              onclick={(e) => {
+              onclick={async (e) => {
                 e.stopPropagation();
-                if (confirm(`Discard changes in ${file.path}?`)) app.discard(file.path);
+                if (await confirm(`Discard changes in ${file.path}?`)) app.discard(file.path);
               }}>↺</button
             >
             <button

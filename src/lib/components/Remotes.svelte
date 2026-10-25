@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { confirm } from "@tauri-apps/plugin-dialog";
   import { app } from "../store.svelte";
   import { autofocus } from "../actions";
   import Modal from "./Modal.svelte";
@@ -64,8 +65,8 @@
           >
           <button
             class="btn danger sm"
-            onclick={() => {
-              if (confirm(`Remove remote "${remote.name}"?`))
+            onclick={async () => {
+              if (await confirm(`Remove remote "${remote.name}"?`))
                 app.removeRemote(remote.name);
             }}>Remove</button
           >

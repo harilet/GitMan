@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { confirm } from "@tauri-apps/plugin-dialog";
   import { app } from "../store.svelte";
   import { autofocus } from "../actions";
   import Modal from "./Modal.svelte";
@@ -47,8 +48,8 @@
           <div class="actions">
             <button
               class="btn danger sm"
-              onclick={() => {
-                if (confirm(`Delete tag "${tag.name}"?`)) app.deleteTag(tag.name);
+              onclick={async () => {
+                if (await confirm(`Delete tag "${tag.name}"?`)) app.deleteTag(tag.name);
               }}>Delete</button
             >
           </div>
