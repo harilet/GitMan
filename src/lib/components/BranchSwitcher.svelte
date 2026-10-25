@@ -34,7 +34,7 @@
     title="{app.repo?.path} — click to switch branch"
   >
     <span class="dot" class:dirty={app.repo?.dirty}></span>
-    <span class="name">{current}</span>
+    <span class="branch-name">{current}</span>
     {#if app.repo?.ahead}
       <span class="badge blue" title="{app.repo.ahead} commit(s) ahead"
         >↑{app.repo.ahead}</span
@@ -52,28 +52,29 @@
     <div class="backdrop" onclick={() => (open = false)} role="presentation"></div>
     <div class="menu">
       <div class="filter">
+        <span class="prompt">/</span>
         <input
-          class="input"
+          class="filter-input"
           placeholder="Switch branch…"
           bind:value={filter}
           use:autofocus
         />
       </div>
-      <div class="list">
+      <div class="list main-scrollbar">
         {#each locals as b (b.name)}
           <button class="item" class:current={b.isHead} onclick={() => pick(b.name)}>
-            <span class="check">{b.isHead ? "✓" : ""}</span>
+            <span class="check">{b.isHead ? "●" : ""}</span>
             <span class="bname">{b.name}</span>
             {#if b.upstream}<span class="up">→ {b.upstream}</span>{/if}
           </button>
         {/each}
 
         {#if remotes.length}
-          <div class="divider">Remote branches</div>
+          <div class="divider label">Remote branches</div>
           {#each remotes as b (b.name)}
             <button class="item" onclick={() => pick(b.name)}>
               <span class="check"></span>
-              <span class="bname">{b.name}</span>
+              <span class="bname remote-name">{b.name}</span>
             </button>
           {/each}
         {/if}
@@ -94,32 +95,42 @@
   .chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 12px;
-    background: var(--panel-3);
-    border: 1px solid var(--border);
-    color: var(--text);
+    gap: 7px;
+    padding: 5px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-color);
+    font-family: inherit;
     font-size: 12px;
     cursor: pointer;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
   }
   .chip:hover,
   .chip.open {
-    border-color: var(--accent);
-    background: var(--panel-2);
+    border-color: var(--primary-color);
+    background: var(--hover-color);
   }
   .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
+    width: 6px;
+    height: 6px;
     background: var(--green);
+    flex: 0 0 auto;
   }
   .dot.dirty {
     background: var(--yellow);
   }
+  .branch-name {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .caret {
     font-size: 9px;
-    color: var(--muted);
+    color: var(--muted-color);
   }
   .backdrop {
     position: fixed;
@@ -131,48 +142,76 @@
     top: calc(100% + 6px);
     left: 0;
     z-index: 50;
-    width: 300px;
-    max-height: 380px;
+    width: 320px;
+    max-height: 400px;
     display: flex;
     flex-direction: column;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    background: var(--surface-color);
+    border: 1px solid var(--border-strong);
+    border-radius: 0;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
     overflow: hidden;
   }
   .filter {
-    padding: 8px;
-    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
     flex: 0 0 auto;
+  }
+  .prompt {
+    color: var(--primary-color);
+    font-size: 12px;
+  }
+  .filter-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 12px;
+  }
+  .filter-input::placeholder {
+    color: var(--muted-color);
   }
   .list {
     overflow: auto;
-    padding: 4px;
+    flex: 1;
+    min-height: 0;
   }
   .item {
     display: flex;
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding: 6px 8px;
+    padding: 8px 12px;
     border: none;
+    border-left: 2px solid transparent;
+    border-bottom: 1px solid rgba(36, 39, 47, 0.6);
     background: transparent;
-    border-radius: 6px;
-    color: var(--text);
+    color: var(--text-color);
     cursor: pointer;
     text-align: left;
+    font-family: inherit;
     font-size: 12px;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
   }
   .item:hover {
-    background: var(--panel-3);
+    background: var(--hover-color);
   }
   .item.current {
-    box-shadow: inset 2px 0 0 var(--green);
+    border-left-color: var(--green);
+    background: var(--surface-2);
   }
   .check {
-    width: 14px;
+    width: 10px;
     color: var(--green);
+    font-size: 9px;
     flex: 0 0 auto;
   }
   .bname {
@@ -181,20 +220,18 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .remote-name {
+    color: var(--muted-color);
+  }
   .up {
     font-size: 10px;
-    color: var(--muted);
+    color: var(--muted-color);
+    flex: 0 0 auto;
   }
   .divider {
-    padding: 8px 8px 4px;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-  .empty {
-    padding: 12px;
-    color: var(--muted);
-    font-size: 12px;
+    padding: 10px 12px 5px;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-color);
   }
 </style>

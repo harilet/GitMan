@@ -40,61 +40,104 @@
   }
 </script>
 
-<div class="welcome">
-  <div class="panel">
-    <div class="hero">
-      <div class="logo">⎇</div>
-      <h1>GitWeft</h1>
-      <p class="muted">
-        Browse, review and manage your local and remote Git repositories.
-      </p>
-    </div>
+<div class="landing">
+  <div class="landing-meta">
+    <span class="label">01 / Projects</span>
+    <span class="label"
+      >{app.recents.length} Recent &middot; Local Repository &middot; Git</span
+    >
+  </div>
 
-    <div class="actions">
-      <button class="action" onclick={openRepo}>
-        <span class="ico">📂</span><span>Open repository</span>
-      </button>
-      <button class="action" onclick={initRepo}>
-        <span class="ico">✨</span><span>Initialize</span>
-      </button>
-      <button class="action" onclick={() => (showClone = true)}>
-        <span class="ico">☁</span><span>Clone</span>
-      </button>
-    </div>
+  <div class="landing-body">
+    <section class="panel">
+      <header class="panel-head">
+        <span class="label">02 / Recent</span>
+        <span class="label">Resume</span>
+      </header>
+      <div class="panel-scroll main-scrollbar">
+        <h1 class="hero">Pick up where<br /><span class="accent">you left off.</span></h1>
 
-    <div class="recents">
-      <div class="recents-head">
-        <h2>Recent projects</h2>
-        {#if app.recents.length}<span class="muted">{app.recents.length}</span>{/if}
-      </div>
-      {#if app.recents.length === 0}
-        <div class="empty muted">
-          No recent projects yet. Open or clone a repository to see it here.
+        <div class="recent-list">
+          {#each app.recents as r, i (r.path)}
+            <div class="recent-row" class:pinned={r.pinned}>
+              <button
+                class="recent-main"
+                onclick={() => app.openRepo(r.path)}
+                title={r.path}
+              >
+                <span class="recent-index">{String(i + 1).padStart(2, "0")}</span>
+                <span class="recent-text">
+                  <span class="recent-name">{r.name}</span>
+                  <span class="recent-path">{r.path}</span>
+                </span>
+                <span class="recent-arrow">&nearr;</span>
+              </button>
+              <button
+                class="row-action pin"
+                class:active={r.pinned}
+                title={r.pinned ? "Unpin project" : "Pin project"}
+                aria-label={r.pinned ? "Unpin project" : "Pin project"}
+                onclick={() => app.togglePin(r.path)}
+              >
+                {r.pinned ? "★" : "☆"}
+              </button>
+              <button
+                class="row-action"
+                title="Remove from recents"
+                aria-label="Remove from recents"
+                onclick={() => app.removeRecent(r.path)}>✕</button
+              >
+            </div>
+          {:else}
+            <div class="empty">No recent projects</div>
+          {/each}
         </div>
-      {:else}
-        {#each app.recents as r (r.path)}
-          <div class="recent" class:pinned={r.pinned}>
-            <button class="open" onclick={() => app.openRepo(r.path)} title={r.path}>
-              <span class="rname">{r.name}</span>
-              <span class="rpath muted">{r.path}</span>
-            </button>
-            <button
-              class="icon-btn"
-              class:active={r.pinned}
-              title={r.pinned ? "Unpin project" : "Pin project"}
-              onclick={() => app.togglePin(r.path)}
-            >
-              {r.pinned ? "★" : "☆"}
-            </button>
-            <button
-              class="icon-btn"
-              title="Remove from recents"
-              onclick={() => app.removeRecent(r.path)}>✕</button
-            >
-          </div>
-        {/each}
-      {/if}
-    </div>
+      </div>
+    </section>
+
+    <section class="panel left-border">
+      <header class="panel-head">
+        <span class="label">03 / New Session</span>
+        <span class="label">Open &middot; Init &middot; Clone</span>
+      </header>
+      <div class="panel-scroll main-scrollbar">
+        <h1 class="hero">Start a<br /><span class="accent">new workspace.</span></h1>
+
+        <div class="action-list">
+          <button class="action-row" onclick={openRepo}>
+            <span class="action-index">01</span>
+            <span class="action-text">
+              <span class="action-title">Open repository</span>
+              <span class="action-sub">Browse an existing local Git project.</span>
+            </span>
+            <span class="action-arrow">&nearr;</span>
+          </button>
+
+          <button class="action-row" onclick={initRepo}>
+            <span class="action-index">02</span>
+            <span class="action-text">
+              <span class="action-title">Initialize</span>
+              <span class="action-sub">Create a new repository in a folder.</span>
+            </span>
+            <span class="action-arrow">&nearr;</span>
+          </button>
+
+          <button class="action-row" onclick={() => (showClone = true)}>
+            <span class="action-index">03</span>
+            <span class="action-text">
+              <span class="action-title">Clone</span>
+              <span class="action-sub">Fetch a remote repository to disk.</span>
+            </span>
+            <span class="action-arrow">&nearr;</span>
+          </button>
+        </div>
+
+        <p class="panel-note label">
+          GitWeft keeps every repository in its own session. Open several and
+          switch between them from the title bar.
+        </p>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -117,7 +160,7 @@
           placeholder="/path/to/clone/into"
           bind:value={cloneDest}
         />
-        <button class="btn" onclick={pickDestination}>Browse…</button>
+        <button class="btn" onclick={pickDestination}>Browse</button>
       </div>
     </label>
     {#snippet footer()}
@@ -134,149 +177,193 @@
 {/if}
 
 <style>
-  .welcome {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    padding: 48px 24px;
-    overflow: auto;
-  }
-  .panel {
-    width: min(680px, 94vw);
+  .landing {
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
-  .hero {
-    text-align: center;
-  }
-  .logo {
-    font-size: 48px;
-    color: var(--accent);
-    line-height: 1;
-    margin-bottom: 10px;
-  }
-  h1 {
-    font-size: 24px;
-    margin-bottom: 6px;
-  }
-  .actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-  .action {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition:
-      border-color 0.15s,
-      background 0.15s,
-      transform 0.15s;
-  }
-  .action:hover {
-    border-color: var(--accent);
-    background: var(--panel-2);
-    transform: translateY(-1px);
-  }
-  .ico {
-    font-size: 16px;
-  }
-
-  .recents {
-    border-top: 1px solid var(--border);
-    padding-top: 18px;
-  }
-  .recents-head {
+  .landing-meta {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--border-color);
+    flex: 0 0 auto;
   }
-  .recents-head h2 {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-  .empty {
-    padding: 18px;
-    text-align: center;
-    border: 1px dashed var(--border);
-    border-radius: 10px;
-    font-size: 12px;
-  }
-  .recent {
+  .landing-body {
     display: flex;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--panel);
-    margin-bottom: 8px;
-    padding: 4px 6px 4px 0;
+    flex: 1;
+    min-height: 0;
   }
-  .recent:hover {
-    border-color: #484f58;
-    background: var(--panel-2);
-  }
-  .recent.pinned {
-    border-color: #4a3a12;
-    box-shadow: inset 3px 0 0 var(--yellow);
-  }
-  .open {
+  .panel {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    width: 50%;
+    min-width: 0;
+    height: 100%;
+  }
+  .panel-scroll {
+    padding: 40px 22px;
+    flex: 1;
+    min-height: 0;
+  }
+  .hero {
+    margin: 0 0 34px 0;
+    font-size: clamp(30px, 4.4vw, 58px);
+    line-height: 1.02;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-color);
+  }
+
+  .recent-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border-color);
+  }
+  .recent-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.15s ease;
+  }
+  .recent-row:hover {
+    background: var(--hover-color);
+  }
+  .recent-row.pinned {
+    box-shadow: inset 2px 0 0 var(--yellow);
+  }
+  .recent-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+    padding: 13px 4px 13px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .recent-index {
+    color: var(--primary-color);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  .recent-text {
+    display: flex;
+    flex-direction: column;
     gap: 2px;
     flex: 1;
     min-width: 0;
-    padding: 8px 12px;
-    background: transparent;
-    border: none;
-    color: var(--text);
-    cursor: pointer;
-    text-align: left;
   }
-  .rname {
-    font-weight: 600;
+  .recent-name {
     font-size: 13px;
-  }
-  .rpath {
-    font-size: 11px;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 100%;
   }
-  .icon-btn {
-    flex: 0 0 auto;
-    width: 28px;
-    height: 28px;
+  .recent-path {
+    font-size: 11px;
+    color: var(--muted-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .recent-arrow {
+    color: var(--muted-color);
+    flex-shrink: 0;
+    padding-right: 10px;
+  }
+  .recent-row:hover .recent-arrow {
+    color: var(--primary-color);
+  }
+  .row-action {
     border: none;
-    border-radius: 6px;
+    border-left: 1px solid var(--border-color);
     background: transparent;
-    color: var(--muted);
+    color: var(--muted-color);
     cursor: pointer;
-    font-size: 14px;
+    width: 38px;
+    flex: 0 0 auto;
+    font-family: inherit;
+    font-size: 13px;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
   }
-  .icon-btn:hover {
-    background: var(--panel-3);
-    color: var(--text);
+  .row-action:hover {
+    background: var(--hover-color);
+    color: var(--text-color);
   }
-  .icon-btn.active {
+  .row-action.pin.active {
     color: var(--yellow);
+  }
+
+  .action-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border-color);
+  }
+  .action-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 12px 15px 4px;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    transition:
+      background 0.15s ease,
+      padding 0.15s ease;
+  }
+  .action-row:hover {
+    background: var(--hover-color);
+    padding-left: 12px;
+  }
+  .action-index {
+    color: var(--primary-color);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .action-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+  }
+  .action-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .action-sub {
+    font-size: 11px;
+    color: var(--muted-color);
+  }
+  .action-arrow {
+    color: var(--muted-color);
+    flex-shrink: 0;
+  }
+  .action-row:hover .action-arrow {
+    color: var(--primary-color);
+  }
+  .panel-note {
+    margin-top: 24px;
+    line-height: 1.8;
+    white-space: normal;
+    max-width: 44ch;
   }
 </style>

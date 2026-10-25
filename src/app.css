@@ -1,176 +1,36 @@
-:root {
-  --bg: #0d1117;
-  --panel: #161b22;
-  --panel-2: #1c2128;
-  --panel-3: #21262d;
-  --border: #30363d;
-  --text: #e6edf3;
-  --muted: #8b949e;
-  --accent: #2f81f7;
-  --accent-hover: #388bfd;
-  --green: #3fb950;
-  --red: #f85149;
-  --yellow: #d29922;
-  --purple: #bc8cff;
-  --radius: 8px;
-  color-scheme: dark;
-}
-
+/* ---------- base ---------- */
 * {
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+::selection {
+  background: var(--primary-color);
+  color: var(--background-color);
 }
 
-body {
-  font-family:
-    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text);
-  background: var(--bg);
-  overflow: hidden;
-}
-
+/* ---------- scrollbars ---------- */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
-::-webkit-scrollbar-thumb {
-  background: #30363d;
-  border-radius: 5px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #484f58;
-  background-clip: content-box;
-}
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
-button {
-  font-family: inherit;
-  font-size: 12px;
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid var(--background-color);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-color);
 }
 
-input,
-textarea,
-select {
-  font-family: inherit;
-  font-size: 13px;
+.main-scrollbar {
+  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-width: thin;
+  overflow: auto;
 }
 
-h1,
-h2,
-h3,
-h4 {
-  margin: 0;
-  font-weight: 600;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--panel-3);
-  color: var(--text);
-  cursor: pointer;
-  transition:
-    background 0.12s,
-    border-color 0.12s,
-    opacity 0.12s;
-  white-space: nowrap;
-  user-select: none;
-}
-.btn:hover {
-  background: #30363d;
-  border-color: #484f58;
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-.btn.primary:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
-.btn.danger {
-  color: var(--red);
-  border-color: #4a1f1f;
-  background: #2a1618;
-}
-.btn.danger:hover {
-  background: #3d1d20;
-  border-color: #6e2a2a;
-}
-.btn.ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--muted);
-}
-.btn.ghost:hover {
-  background: var(--panel-3);
-  color: var(--text);
-}
-.btn.sm {
-  padding: 2px 8px;
-  font-size: 11px;
-}
-.btn.icon {
-  padding: 4px 7px;
-  font-size: 13px;
-  line-height: 1;
-}
-
-.input,
-.textarea {
-  width: 100%;
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg);
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.12s;
-}
-.input:focus,
-.textarea:focus {
-  border-color: var(--accent);
-}
-.textarea {
-  resize: vertical;
-  min-height: 70px;
-  font-family: inherit;
-}
-label.field {
-  display: block;
-  margin-bottom: 10px;
-}
-label.field > span {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
+/* ---------- layout ---------- */
 .row {
   display: flex;
   align-items: center;
@@ -179,29 +39,212 @@ label.field > span {
 .spacer {
   flex: 1;
 }
+
+/* ---------- typography ---------- */
+.label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted-color);
+  white-space: nowrap;
+}
 .muted {
-  color: var(--muted);
+  color: var(--muted-color);
+}
+.accent {
+  color: var(--primary-color);
 }
 .mono {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
 }
 
+/* ---------- controls ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.btn:hover {
+  background: var(--hover-color);
+  border-color: var(--text-color);
+}
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.btn:disabled:hover {
+  background: transparent;
+  border-color: var(--border-strong);
+}
+.btn.primary {
+  background: var(--text-color);
+  border-color: var(--text-color);
+  color: var(--background-color);
+}
+.btn.primary:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--background-color);
+}
+.btn.danger {
+  border-color: #5a2a2f;
+  color: var(--red);
+}
+.btn.danger:hover {
+  background: #3d1d20;
+  border-color: var(--red);
+  color: #ffd0cb;
+}
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted-color);
+}
+.btn.ghost:hover {
+  color: var(--text-color);
+  border-color: var(--border-strong);
+}
+.btn.sm {
+  padding: 5px 10px;
+  font-size: 10px;
+}
+.btn.icon {
+  padding: 5px 8px;
+  font-size: 12px;
+  line-height: 1;
+}
+.btn.block {
+  width: 100%;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--muted-color);
+}
+.input:focus,
+.textarea:focus {
+  border-color: var(--primary-color);
+}
+.textarea {
+  resize: none;
+  min-height: 74px;
+  background: var(--background-color);
+}
+
+label.field {
+  display: block;
+  margin-bottom: 18px;
+}
+label.field > span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--muted-color);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+/* ---------- panels ---------- */
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  flex: 0 0 auto;
+  min-height: 38px;
+}
+
+.empty {
+  padding: 16px 14px;
+  color: var(--muted-color);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* ---------- segmented control ---------- */
+.seg {
+  display: flex;
+  border: 1px solid var(--border-strong);
+}
+.seg button {
+  border: none;
+  border-right: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--muted-color);
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.seg button:last-child {
+  border-right: none;
+}
+.seg button:hover {
+  color: var(--text-color);
+  background: var(--hover-color);
+}
+.seg button.active {
+  background: var(--text-color);
+  color: var(--background-color);
+}
+
+/* ---------- badges ---------- */
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 0 6px;
   height: 17px;
-  border-radius: 10px;
+  border-radius: 0;
   font-size: 10px;
   font-weight: 600;
-  background: var(--panel-3);
-  color: var(--muted);
-  border: 1px solid var(--border);
+  letter-spacing: 0.04em;
+  background: var(--surface-3);
+  color: var(--muted-color);
+  border: 1px solid var(--border-color);
 }
 .badge.green {
   color: var(--green);
-  border-color: #1f4529;
+  border-color: #25452f;
   background: #12261a;
 }
 .badge.yellow {
@@ -215,13 +258,14 @@ label.field > span {
   background: #241a33;
 }
 .badge.blue {
-  color: var(--accent);
-  border-color: #1f3a5f;
-  background: #12213a;
+  color: var(--primary-color);
+  border-color: #2a3352;
+  background: #151a2c;
 }
 
+/* ---------- file status ---------- */
 .file-status-code {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: 700;
   width: 14px;
   text-align: center;
@@ -241,5 +285,5 @@ label.field > span {
 }
 .code-U,
 .code-\? {
-  color: var(--accent);
+  color: var(--primary-color);
 }

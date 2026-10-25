@@ -90,8 +90,7 @@
       }
     }
 
-    const width =
-      Math.max(...nodes.map((n) => n.x), 0) + NODE_W + PAD_X;
+    const width = Math.max(...nodes.map((n) => n.x), 0) + NODE_W + PAD_X;
     const height = order * ROW_GAP + NODE_H + PAD_Y;
     return { nodes, edges, width, height };
   });
@@ -106,16 +105,21 @@
 
 <div class="graph-view">
   <div class="head">
-    <div class="titles">
-      <h4>Branch graph</h4>
-      <span class="muted">
-        {stats.total} branches · {stats.merges} merges
-      </span>
-    </div>
     <div class="legend">
-      <span class="key"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" class="fork-line" /></svg> branched from</span>
-      <span class="key"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" class="merge-line" /></svg> merged into</span>
-      <label class="toggle">
+      <span class="key"
+        ><svg width="26" height="8"
+          ><line x1="0" y1="4" x2="26" y2="4" class="fork-line" /></svg
+        > branched from</span
+      >
+      <span class="key"
+        ><svg width="26" height="8"
+          ><line x1="0" y1="4" x2="26" y2="4" class="merge-line" /></svg
+        > merged into</span
+      >
+    </div>
+    <div class="head-right">
+      <span class="label">{stats.total} branches &middot; {stats.merges} merges</span>
+      <label class="toggle label">
         <input
           type="checkbox"
           checked={app.graphIncludeRemote}
@@ -126,14 +130,11 @@
     </div>
   </div>
 
-  <div class="canvas">
+  <div class="canvas main-scrollbar">
     {#if layout.nodes.length === 0}
-      <div class="empty muted">No branches to display</div>
+      <div class="empty">No branches to display</div>
     {:else}
-      <div
-        class="stage"
-        style="width:{layout.width}px; height:{layout.height}px"
-      >
+      <div class="stage" style="width:{layout.width}px; height:{layout.height}px">
         <svg
           class="edges"
           width={layout.width}
@@ -170,7 +171,7 @@
             style="left:{n.x}px; top:{n.y}px; width:{NODE_W}px; height:{NODE_H}px"
             title="{n.name} · {n.tipShort}{n.parent ? ` · from ${n.parent}` : ''}"
           >
-            <span class="node-icon">{n.isRemote ? "☁" : "⎇"}</span>
+            <span class="node-icon">{n.isRemote ? "R" : "B"}</span>
             <span class="node-name">{n.name}</span>
             <span class="node-tip mono">{n.tipShort}</span>
             {#if n.isHead}<span class="chip green">HEAD</span>{/if}
@@ -193,40 +194,33 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 14px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    background: var(--background-color);
+    border-bottom: 1px solid var(--border-color);
     flex: 0 0 auto;
     flex-wrap: wrap;
-  }
-  .titles {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .head h4 {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-  }
-  .head .muted {
-    font-size: 11px;
   }
   .legend {
     display: flex;
     align-items: center;
-    gap: 14px;
-    font-size: 11px;
-    color: var(--muted);
+    gap: 16px;
+    font-size: 10px;
+    color: var(--muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
   .key {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+  }
+  .head-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
   }
   .fork-line {
-    stroke: var(--accent);
+    stroke: var(--primary-color);
     stroke-width: 2;
   }
   .merge-line {
@@ -237,19 +231,23 @@
   .toggle {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 7px;
     cursor: pointer;
+  }
+  .toggle input {
+    accent-color: var(--primary-color);
+    margin: 0;
   }
   .canvas {
     flex: 1;
     min-height: 0;
     overflow: auto;
     background:
-      radial-gradient(circle at 1px 1px, rgba(139, 148, 158, 0.14) 1px, transparent 0)
+      radial-gradient(circle at 1px 1px, rgba(124, 130, 142, 0.16) 1px, transparent 0)
         0 0 / 22px 22px;
   }
   .empty {
-    padding: 40px;
+    padding: 40px 16px;
     text-align: center;
   }
   .stage {
@@ -265,7 +263,7 @@
     stroke-width: 2;
   }
   .edge.fork {
-    stroke: var(--accent);
+    stroke: var(--primary-color);
   }
   .edge.merge {
     stroke: var(--purple);
@@ -275,25 +273,31 @@
     position: absolute;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
     padding: 0 8px;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-    font-size: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    border-radius: 0;
+    font-size: 11px;
     z-index: 1;
   }
   .node.head {
     border-color: var(--green);
-    box-shadow: 0 0 0 1px rgba(63, 185, 80, 0.35);
+    box-shadow: inset 2px 0 0 var(--green);
   }
   .node.remote {
     border-style: dashed;
   }
   .node-icon {
-    color: var(--muted);
-    font-size: 12px;
+    color: var(--muted-color);
+    font-size: 9px;
+    border: 1px solid var(--border-strong);
+    width: 15px;
+    height: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
   }
   .node-name {
     flex: 1;
@@ -304,19 +308,21 @@
   }
   .node-tip {
     font-size: 10px;
-    color: var(--accent);
+    color: var(--primary-color);
+    flex: 0 0 auto;
   }
   .chip {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 700;
-    padding: 1px 5px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    color: var(--muted);
+    letter-spacing: 0.08em;
+    padding: 1px 4px;
+    border: 1px solid var(--border-color);
+    color: var(--muted-color);
+    flex: 0 0 auto;
   }
   .chip.green {
     color: var(--green);
-    border-color: #1f4529;
+    border-color: #25452f;
     background: #12261a;
   }
 </style>

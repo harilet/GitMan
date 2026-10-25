@@ -106,11 +106,12 @@ the OS credential manager, SSH agent and credential helpers work as configured.
       each with an independent session (status, history, branches, diff, view)
 - [x] Tab shows project name, a dirty indicator, a per-tab busy spinner and a close button
 - [x] `＋` tab returns to the start screen to open another project
-- [x] Modern dark theme with a consistent design system
+- [x] Editorial monospace dark theme with a consistent design system
 - [x] Toolbar **branch switcher**: shows the current branch name and opens a
       searchable dropdown of local + remote branches for quick switching
-- [x] Left navigation rail with live item counts
-- [x] Top toolbar with Fetch / Pull / Push / Refresh / Close
+- [x] Left navigation rail with live item counts — Changes, History (commit list
+      and branch graph), Branches (local/remote branches and remotes), Tags, Stashes
+- [x] Top toolbar with Fetch / Pull / Push / Refresh / Identity
 - [x] Busy spinner and toast notifications (info / success / error)
 - [x] Keyboard shortcuts: `Ctrl/Cmd + R` refresh, `Esc` closes dialogs
 - [x] Modal dialogs for create/clone/add flows with validation

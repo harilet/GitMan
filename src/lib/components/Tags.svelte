@@ -11,10 +11,7 @@
 
   async function create() {
     if (!tagName.trim()) return;
-    const target =
-      tagTarget.trim() ||
-      app.log[0]?.oid ||
-      null;
+    const target = tagTarget.trim() || app.log[0]?.oid || null;
     const ok = await app.createTag(
       tagName.trim(),
       tagMessage.trim() || null,
@@ -30,32 +27,37 @@
 </script>
 
 <div class="tags">
-  <div class="head">
-    <h4>Tags</h4>
-    <button class="btn primary sm" onclick={() => (showCreate = true)}>+ New tag</button>
-  </div>
-  <div class="content">
+  <header class="panel-head">
+    <div class="titles">
+      <span class="label">Tags</span>
+      <span class="label">{app.tags.length} total</span>
+    </div>
+    <button class="btn sm" onclick={() => (showCreate = true)}>New tag</button>
+  </header>
+
+  <div class="content main-scrollbar">
     {#each app.tags as tag (tag.name)}
       <div class="tag">
         <div class="top">
-          <div class="info">
-            <span class="name mono">{tag.name}</span>
-            <span class="badge {tag.annotated ? 'yellow' : ''}">
-              {tag.annotated ? "annotated" : "lightweight"}
-            </span>
-            <span class="mono muted target">{tag.target.slice(0, 7)}</span>
-          </div>
+          <span class="mark">T</span>
+          <span class="name mono">{tag.name}</span>
+          <span class="badge {tag.annotated ? 'yellow' : ''}">
+            {tag.annotated ? "annotated" : "lightweight"}
+          </span>
+          <span class="target mono">{tag.target.slice(0, 7)}</span>
+          <span class="spacer"></span>
           <div class="actions">
             <button
-              class="btn danger sm"
+              class="btn ghost sm danger-text"
               onclick={async () => {
-                if (await confirm(`Delete tag "${tag.name}"?`)) app.deleteTag(tag.name);
+                if (await confirm(`Delete tag "${tag.name}"?`))
+                  app.deleteTag(tag.name);
               }}>Delete</button
             >
           </div>
         </div>
         {#if tag.message}
-          <div class="msg muted">{tag.message}</div>
+          <div class="msg">{tag.message}</div>
         {/if}
       </div>
     {:else}
@@ -71,7 +73,7 @@
       <input class="input" placeholder="v1.0.0" bind:value={tagName} use:autofocus />
     </label>
     <label class="field">
-      <span>Message (optional — creates an annotated tag)</span>
+      <span>Message (optional — annotated tag)</span>
       <textarea class="textarea" bind:value={tagMessage}></textarea>
     </label>
     <label class="field">
@@ -80,7 +82,9 @@
     </label>
     {#snippet footer()}
       <button class="btn" onclick={() => (showCreate = false)}>Cancel</button>
-      <button class="btn primary" disabled={!tagName.trim()} onclick={create}>Create</button>
+      <button class="btn primary" disabled={!tagName.trim()} onclick={create}>
+        Create
+      </button>
     {/snippet}
   </Modal>
 {/if}
@@ -92,59 +96,72 @@
     height: 100%;
     overflow: hidden;
   }
-  .head {
+  .titles {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-    flex: 0 0 auto;
-  }
-  .head h4 {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
+    align-items: baseline;
+    gap: 12px;
   }
   .content {
-    overflow: auto;
     flex: 1;
+    min-height: 0;
   }
   .tag {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(36, 39, 47, 0.7);
+    border-left: 2px solid transparent;
   }
   .tag:hover {
-    background: var(--panel);
+    background: var(--hover-color);
   }
   .top {
     display: flex;
     align-items: center;
-    gap: 8px;
-  }
-  .info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
+    gap: 10px;
     min-width: 0;
+  }
+  .mark {
+    color: var(--primary-color);
+    border: 1px solid var(--border-strong);
+    font-size: 9px;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
   }
   .name {
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .target {
-    font-size: 11px;
+    font-size: 10px;
+    color: var(--muted-color);
+  }
+  .spacer {
+    flex: 1;
+  }
+  .actions {
+    flex: 0 0 auto;
+  }
+  .danger-text {
+    color: var(--muted-color);
+  }
+  .danger-text:hover {
+    color: var(--red);
+    border-color: var(--red);
   }
   .msg {
-    flex-basis: 100%;
-    font-size: 12px;
-  }
-  .empty {
-    padding: 16px 12px;
-    color: var(--muted);
+    padding-left: 26px;
+    font-size: 11px;
+    color: var(--muted-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

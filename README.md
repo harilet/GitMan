@@ -129,7 +129,7 @@ cd src-tauri && cargo clippy --all-targets
 │   └── lib/
 │       ├── api.ts                 # Typed Tauri IPC wrappers
 │       ├── store.svelte.ts        # Per-repository sessions + app state
-│       └── components/            # Changes, History, Graph, Branches, ...
+│       └── components/            # Changes, History, Branches, Tags, ...
 ├── src-tauri/
 │   ├── src/lib.rs                 # Tauri builder + command registration
 │   ├── src/git.rs                 # All Git backend commands

@@ -48,20 +48,27 @@
 
 <style>
   .intro {
-    margin: 0 0 14px;
+    margin: 0 0 18px;
     font-size: 12px;
+    line-height: 1.7;
   }
   .scope {
     align-items: flex-start;
     gap: 8px !important;
     font-size: 12px;
+    margin-bottom: 14px;
   }
   .scope input {
     margin-top: 2px;
+    accent-color: var(--primary-color);
   }
   .location {
-    margin-top: 10px;
-    font-size: 11px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--background-color);
+    font-size: 10px;
+    color: var(--muted-color);
     word-break: break-all;
+    line-height: 1.6;
   }
 </style>

@@ -30,15 +30,15 @@
 
 <div class="changes">
   <section class="list staged">
-    <div class="list-head">
-      <h4>Staged ({app.staged.length})</h4>
+    <div class="panel-head">
+      <span class="label">Staged &middot; {app.staged.length}</span>
       <button
         class="btn ghost sm"
         disabled={app.staged.length === 0}
         onclick={() => app.unstageAll()}>Unstage all</button
       >
     </div>
-    <div class="files">
+    <div class="files main-scrollbar">
       {#each app.staged as file (file.path)}
         <div
           class="file"
@@ -49,15 +49,17 @@
           onkeydown={(e) => e.key === "Enter" && select(file, true)}
         >
           <span class="file-status-code {codeClass(file.index)}">{file.index}</span>
-          <span class="path mono">{file.path}</span>
-          <button
-            class="btn ghost sm act"
-            title="Unstage"
-            onclick={(e) => {
-              e.stopPropagation();
-              app.unstage(file.path);
-            }}>−</button
-          >
+          <span class="path">{file.path}</span>
+          <div class="actions">
+            <button
+              class="btn ghost sm act"
+              title="Unstage"
+              onclick={(e) => {
+                e.stopPropagation();
+                app.unstage(file.path);
+              }}>−</button
+            >
+          </div>
         </div>
       {:else}
         <div class="empty">Nothing staged</div>
@@ -66,9 +68,10 @@
   </section>
 
   <section class="commit-box">
+    <span class="label commit-label">Commit message</span>
     <textarea
       class="textarea"
-      placeholder="Commit message…"
+      placeholder="Describe your changes…"
       bind:value={message}
       onkeydown={(e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitCommit();
@@ -90,17 +93,18 @@
       >
     </div>
     {#if app.user}
-      <div class="hint muted">
-        Author: {app.user.name || "unset"} &lt;{app.user.email || "unset"}&gt;
+      <div class="hint label">
+        {app.user.name || "unset"} &lt;{app.user.email || "unset"}&gt;
       </div>
     {/if}
   </section>
 
   <section class="list unstaged">
-    <div class="list-head">
-      <h4>Changes ({app.unstaged.length})</h4>
+    <div class="panel-head">
+      <span class="label">Changes &middot; {app.unstaged.length}</span>
+      <span class="label">Working tree</span>
     </div>
-    <div class="files">
+    <div class="files main-scrollbar">
       {#each app.unstaged as file (file.path)}
         <div
           class="file"
@@ -111,14 +115,15 @@
           onkeydown={(e) => e.key === "Enter" && select(file, false)}
         >
           <span class="file-status-code {codeClass(file.worktree)}">{file.worktree}</span>
-          <span class="path mono">{file.path}</span>
+          <span class="path">{file.path}</span>
           <div class="actions">
             <button
               class="btn ghost sm act"
               title="Discard changes"
               onclick={async (e) => {
                 e.stopPropagation();
-                if (await confirm(`Discard changes in ${file.path}?`)) app.discard(file.path);
+                if (await confirm(`Discard changes in ${file.path}?`))
+                  app.discard(file.path);
               }}>↺</button
             >
             <button
@@ -155,73 +160,76 @@
   .list.staged {
     max-height: 34%;
   }
-  .list-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-  }
-  .list-head h4 {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-  }
   .files {
-    overflow: auto;
     flex: 1;
+    min-height: 0;
   }
   .file {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 4px 10px;
+    gap: 10px;
+    padding: 7px 14px;
+    border-bottom: 1px solid rgba(36, 39, 47, 0.7);
+    border-left: 2px solid transparent;
     cursor: pointer;
-    border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
   }
   .file:hover {
-    background: var(--panel);
+    background: var(--hover-color);
   }
   .file.selected {
-    background: var(--panel-2);
-    box-shadow: inset 2px 0 0 var(--accent);
+    background: var(--surface-2);
+    border-left-color: var(--primary-color);
   }
   .path {
     flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 12px;
   }
   .actions {
     display: flex;
     gap: 2px;
+    flex: 0 0 auto;
   }
   .act {
     opacity: 0;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1;
+    padding: 2px 7px;
   }
-  .file:hover .act {
+  .file:hover .act,
+  .file.selected .act {
     opacity: 1;
   }
-  .empty {
-    padding: 14px 12px;
-    color: var(--muted);
-    font-size: 12px;
-  }
   .commit-box {
-    padding: 12px;
-    background: var(--panel);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--surface-color);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
     flex: 0 0 auto;
   }
+  .commit-label {
+    display: block;
+  }
+  .commit-box .textarea {
+    min-height: 68px;
+    padding: 10px 12px;
+  }
   .hint {
-    font-size: 11px;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-size: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

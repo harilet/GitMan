@@ -12,7 +12,7 @@
   }
 </script>
 
-<div class="diff">
+<div class="diff main-scrollbar">
   {#if files.length === 0}
     <div class="empty">{empty ?? "No changes to display"}</div>
   {:else}
@@ -53,18 +53,16 @@
 <style>
   .diff {
     height: 100%;
-    overflow: auto;
-    background: var(--bg);
+    background: var(--background-color);
   }
   .empty {
     padding: 40px 20px;
     text-align: center;
-    color: var(--muted);
   }
   .inner {
     display: inline-block;
     min-width: 100%;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     line-height: 1.6;
   }
@@ -89,15 +87,15 @@
     width: 44px;
     text-align: right;
     padding-right: 10px;
-    color: #6e7681;
+    color: var(--muted-color);
     user-select: none;
   }
   .num.old {
-    border-left: 1px solid rgba(48, 54, 61, 0.5);
+    border-left: 1px solid var(--border-color);
   }
 
   .add {
-    background: #10331f;
+    background: #12261a;
     color: #c3f0cd;
   }
   .add .marker,
@@ -114,21 +112,21 @@
     background: #5c2427;
     color: #ff9c95;
   }
-  .ctx .marker,
-  .ctx .num {
-    background: rgba(48, 54, 61, 0.35);
+  .context .marker,
+  .context .num {
+    background: rgba(36, 39, 47, 0.5);
   }
 
   .hunk {
     align-items: center;
     gap: 8px;
     padding: 2px 12px 2px 6px;
-    background: rgba(56, 139, 253, 0.12);
-    color: #79c0ff;
+    background: rgba(123, 140, 255, 0.1);
+    color: var(--primary-color);
   }
   .meta {
     padding: 0 16px 0 24px;
-    color: var(--muted);
+    color: var(--muted-color);
   }
   .none {
     height: 1.6em;
@@ -141,12 +139,12 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 5px 12px;
-    background: var(--panel-2);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    color: var(--muted);
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    padding: 6px 12px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--muted-color);
+    font-family: var(--font-mono);
     font-size: 11px;
   }
   .file-header .path {
@@ -161,10 +159,10 @@
     width: 16px;
     height: 16px;
     flex: 0 0 auto;
-    border-radius: 4px;
-    background: var(--panel-3);
-    color: var(--accent);
-    font-size: 10px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--primary-color);
+    font-size: 9px;
     font-weight: 700;
   }
 </style>

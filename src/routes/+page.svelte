@@ -3,9 +3,7 @@
   import Welcome from "$lib/components/Welcome.svelte";
   import Changes from "$lib/components/Changes.svelte";
   import History from "$lib/components/History.svelte";
-  import Graph from "$lib/components/Graph.svelte";
   import Branches from "$lib/components/Branches.svelte";
-  import Remotes from "$lib/components/Remotes.svelte";
   import Tags from "$lib/components/Tags.svelte";
   import Stashes from "$lib/components/Stashes.svelte";
   import Settings from "$lib/components/Settings.svelte";
@@ -25,18 +23,14 @@
       app.remotes[0]?.name ??
       null,
   );
-  const cannotPush = $derived(
-    !app.repo || app.repo.detached || app.repo.unborn,
-  );
+  const cannotPush = $derived(!app.repo || app.repo.detached || app.repo.unborn);
 
-  const nav: { key: ViewKey; label: string; icon: string; count: () => number }[] = [
-    { key: "changes", label: "Changes", icon: "±", count: () => app.status.length },
-    { key: "history", label: "History", icon: "☰", count: () => app.log.length },
-    { key: "graph", label: "Graph", icon: "⑃", count: () => app.graph?.nodes.length ?? 0 },
-    { key: "branches", label: "Branches", icon: "⎇", count: () => app.localBranches.length },
-    { key: "remotes", label: "Remotes", icon: "⇅", count: () => app.remotes.length },
-    { key: "tags", label: "Tags", icon: "⚑", count: () => app.tags.length },
-    { key: "stashes", label: "Stashes", icon: "◇", count: () => app.stashes.length },
+  const nav: { key: ViewKey; label: string; count: () => number }[] = [
+    { key: "changes", label: "Changes", count: () => app.status.length },
+    { key: "history", label: "History", count: () => app.log.length },
+    { key: "branches", label: "Branches", count: () => app.branches.length },
+    { key: "tags", label: "Tags", count: () => app.tags.length },
+    { key: "stashes", label: "Stashes", count: () => app.stashes.length },
   ];
 
   function onkey(e: KeyboardEvent) {
@@ -56,101 +50,128 @@
       <Welcome />
     {:else}
       <div class="app">
-    <header class="toolbar">
-      <div class="repo">
-        <span class="name">{app.repo.name}</span>
-        <BranchSwitcher />
-        {#if app.repo.dirty}<span class="badge yellow">modified</span>{/if}
-      </div>
-
-      <div class="spacer"></div>
-
-      {#if app.remotes.length}
-        <button class="btn" onclick={() => app.fetch(null)}>Fetch</button>
-        <button
-          class="btn"
-          title={currentBranch?.upstream
-            ? `Pull from ${currentBranch.upstream}`
-            : "Current branch has no upstream"}
-          disabled={!currentBranch?.upstream}
-          onclick={() => app.pull(null)}>Pull</button
-        >
-        <button
-          class="btn"
-          disabled={cannotPush}
-          onclick={() =>
-            app.push(
-              toolbarRemote,
-              app.repo?.branch ?? null,
-              !currentBranch?.upstream,
-            )}>Push</button
-        >
-      {/if}
-      <button class="btn" onclick={() => app.refreshAll()} title="Refresh (Ctrl+R)">
-        Refresh
-      </button>
-      <button
-        class="btn"
-        title="Git identity (name / email)"
-        onclick={() => (showSettings = true)}>⚙ Identity</button
-      >
-      {#if app.progress}
-        <span class="progress" title={app.progress}>{app.progress}</span>
-      {/if}
-      {#if app.busy}<span class="spinner" title="Working…"></span>{/if}
-    </header>
-
-    <div class="body">
-      <nav class="rail">
-        {#each nav as item (item.key)}
-          <button
-            class="nav-item"
-            class:active={app.view === item.key}
-            onclick={() => (app.view = item.key)}
-          >
-            <span class="ico">{item.icon}</span>
-            <span class="label">{item.label}</span>
-            <span class="count">{item.count()}</span>
-          </button>
-        {/each}
-        <div class="spacer"></div>
-        <div class="rail-path muted mono" title={app.repo.path}>{app.repo.path}</div>
-      </nav>
-
-      <main class="content">
-        {#if app.view === "changes"}
-          <Changes />
-        {:else if app.view === "history"}
-          <History />
-        {:else if app.view === "graph"}
-          <Graph />
-        {:else if app.view === "branches"}
-          <Branches />
-        {:else if app.view === "remotes"}
-          <Remotes />
-        {:else if app.view === "tags"}
-          <Tags />
-        {:else if app.view === "stashes"}
-          <Stashes />
-        {/if}
-      </main>
-
-      {#if app.diff}
-        <aside class="diff-panel">
-          <header class="diff-head">
-            <div class="diff-titles">
-              <span class="diff-title">{app.diff.title}</span>
-              <span class="diff-sub muted">{app.diff.subtitle}</span>
-            </div>
-            <button class="btn ghost icon" onclick={() => (app.diff = null)}>✕</button>
-          </header>
-          <div class="diff-body">
-            <DiffView patch={app.diff.patch} />
+        <header class="toolbar">
+          <div class="repo">
+            <span class="repo-name">{app.repo.name}</span>
+            <BranchSwitcher />
+            {#if app.repo.dirty}<span class="badge yellow">modified</span>{/if}
           </div>
-        </aside>
-      {/if}
-    </div>
-  </div>
+
+          <div class="spacer"></div>
+
+          <div class="tools">
+            {#if app.remotes.length}
+              <button class="btn sm" onclick={() => app.fetch(null)}>Fetch</button>
+              <button
+                class="btn sm"
+                title={currentBranch?.upstream
+                  ? `Pull from ${currentBranch.upstream}`
+                  : "Current branch has no upstream"}
+                disabled={!currentBranch?.upstream}
+                onclick={() => app.pull(null)}>Pull</button
+              >
+              <button
+                class="btn sm"
+                disabled={cannotPush}
+                onclick={() =>
+                  app.push(
+                    toolbarRemote,
+                    app.repo?.branch ?? null,
+                    !currentBranch?.upstream,
+                  )}>Push</button
+              >
+            {/if}
+            <button
+              class="btn sm"
+              onclick={() => app.refreshAll()}
+              title="Refresh (Ctrl+R)">Refresh</button
+            >
+            <button
+              class="btn sm"
+              title="Git identity (name / email)"
+              onclick={() => (showSettings = true)}>Identity</button
+            >
+          </div>
+
+          {#if app.progress}
+            <span class="progress label" title={app.progress}>{app.progress}</span>
+          {/if}
+          {#if app.busy}<span class="spinner" title="Working…"></span>{/if}
+        </header>
+
+        <div class="body">
+          <nav class="rail">
+            <div class="rail-head">
+              <span class="label">Workspace</span>
+              <span class="label">{String(nav.length).padStart(2, "0")}</span>
+            </div>
+
+            {#each nav as item, i (item.key)}
+              <button
+                class="nav-item"
+                class:active={app.view === item.key}
+                onclick={() => (app.view = item.key)}
+              >
+                <span class="nav-index">{String(i + 1).padStart(2, "0")}</span>
+                <span class="nav-label">{item.label}</span>
+                <span class="count">{item.count()}</span>
+              </button>
+            {/each}
+
+            <div class="spacer"></div>
+
+            <div class="rail-foot">
+              <div class="rail-block">
+                <span class="label">Path</span>
+                <span class="rail-path" title={app.repo.path}>{app.repo.path}</span>
+              </div>
+              <div class="rail-block">
+                <span class="label">Head</span>
+                <span class="rail-path" title={app.repo.head}>
+                  {app.repo.detached
+                    ? "detached"
+                    : (app.repo.branch || "unborn")}{app.repo.head
+                    ? ` · ${app.repo.head.slice(0, 7)}`
+                    : ""}
+                </span>
+              </div>
+            </div>
+          </nav>
+
+          <main class="content">
+            {#if app.view === "changes"}
+              <Changes />
+            {:else if app.view === "history"}
+              <History />
+            {:else if app.view === "branches"}
+              <Branches />
+            {:else if app.view === "tags"}
+              <Tags />
+            {:else if app.view === "stashes"}
+              <Stashes />
+            {/if}
+          </main>
+
+          {#if app.diff}
+            <aside class="diff-panel">
+              <header class="panel-head diff-head">
+                <div class="diff-titles">
+                  <span class="diff-title">{app.diff.title}</span>
+                  <span class="label">{app.diff.subtitle}</span>
+                </div>
+                <button
+                  class="btn ghost icon"
+                  aria-label="Close diff"
+                  onclick={() => (app.diff = null)}>✕</button
+                >
+              </header>
+              <div class="diff-body">
+                <DiffView patch={app.diff.patch} />
+              </div>
+            </aside>
+          {/if}
+        </div>
+      </div>
     {/if}
   </div>
 </div>
@@ -167,7 +188,7 @@
   .root {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     overflow: hidden;
   }
   .main {
@@ -184,14 +205,16 @@
     height: 100%;
     overflow: hidden;
   }
+
   .toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
     flex: 0 0 auto;
+    min-height: 46px;
   }
   .repo {
     display: flex;
@@ -199,151 +222,188 @@
     gap: 12px;
     min-width: 0;
   }
-  .repo .name {
-    font-weight: 600;
-    font-size: 14px;
-  }
-  .spacer {
-    flex: 1;
-  }
-  .body {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-  }
-  .rail {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    width: 172px;
-    flex: 0 0 auto;
-    padding: 8px;
-    background: var(--panel);
-    border-right: 1px solid var(--border);
-    overflow: hidden;
-  }
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 10px;
-    background: transparent;
-    border: none;
-    border-radius: var(--radius);
-    color: var(--muted);
-    cursor: pointer;
-    text-align: left;
+  .repo-name {
     font-size: 13px;
-  }
-  .nav-item:hover {
-    background: var(--panel-2);
-    color: var(--text);
-  }
-  .nav-item.active {
-    background: var(--panel-3);
-    color: var(--text);
-    box-shadow: inset 2px 0 0 var(--accent);
-  }
-  .nav-item .ico {
-    width: 16px;
-    text-align: center;
-    font-size: 14px;
-  }
-  .nav-item .label {
-    flex: 1;
-  }
-  .nav-item .count {
-    font-size: 10px;
-    color: var(--muted);
-    background: var(--bg);
-    border-radius: 8px;
-    padding: 0 6px;
-    min-width: 18px;
-    text-align: center;
-  }
-  .rail-path {
-    font-size: 10px;
-    padding: 6px 8px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    word-break: break-all;
   }
-  .content {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-  }
-  .diff-panel {
-    display: flex;
-    flex-direction: column;
-    width: 48%;
-    min-width: 320px;
-    flex: 0 0 auto;
-    border-left: 1px solid var(--border);
-    background: var(--bg);
-  }
-  .diff-head {
+  .tools {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-    flex: 0 0 auto;
-  }
-  .diff-titles {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-  .diff-title {
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .diff-sub {
-    font-size: 11px;
-  }
-  .diff-body {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-  }
-  .spinner {
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
+    gap: 6px;
+    flex-wrap: wrap;
   }
   .progress {
-    max-width: 260px;
+    max-width: 240px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 11px;
-    color: var(--muted);
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex: 0 0 auto;
   }
   @keyframes spin {
     to {
       transform: rotate(360deg);
     }
   }
+
+  .body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .rail {
+    display: flex;
+    flex-direction: column;
+    width: 188px;
+    flex: 0 0 auto;
+    background: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    overflow: hidden;
+  }
+  .rail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border: none;
+    border-left: 2px solid transparent;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    color: var(--muted-color);
+    font-family: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .nav-item:hover {
+    background: var(--hover-color);
+    color: var(--text-color);
+  }
+  .nav-item.active {
+    color: var(--text-color);
+    background: var(--hover-color);
+    border-left-color: var(--primary-color);
+  }
+  .nav-index {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted-color);
+    flex: 0 0 auto;
+  }
+  .nav-item.active .nav-index {
+    color: var(--primary-color);
+  }
+  .nav-label {
+    flex: 1;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .count {
+    font-size: 10px;
+    color: var(--muted-color);
+    min-width: 18px;
+    text-align: right;
+    flex: 0 0 auto;
+  }
+  .nav-item.active .count {
+    color: var(--text-color);
+  }
+
+  .rail-foot {
+    border-top: 1px solid var(--border-color);
+    padding: 4px 0 8px;
+  }
+  .rail-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 9px 16px;
+  }
+  .rail-path {
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--muted-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .content {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .diff-panel {
+    display: flex;
+    flex-direction: column;
+    width: 48%;
+    min-width: 340px;
+    flex: 0 0 auto;
+    border-left: 1px solid var(--border-color);
+    background: var(--background-color);
+  }
+  .diff-head {
+    padding: 8px 14px;
+  }
+  .diff-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .diff-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .diff-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .toast {
     position: fixed;
     right: 16px;
     bottom: 16px;
     max-width: 380px;
-    padding: 10px 14px;
-    border-radius: var(--radius);
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    padding: 11px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.55);
     font-size: 12px;
     z-index: 200;
     white-space: pre-wrap;
@@ -353,7 +413,7 @@
     color: #ffdcd7;
   }
   .toast.success {
-    border-color: #1f4529;
+    border-color: #25452f;
     color: #aff5b4;
   }
 </style>

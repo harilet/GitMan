@@ -6,6 +6,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>GitWeft</title>
     %sveltekit.head%
+    <style>
+      :root {
+        --primary-color: #7b8cff;
+        --text-color: #edeef0;
+        --muted-color: #7c828e;
+        --background-color: #0a0b0f;
+        --surface-color: #111319;
+        --surface-2: #15181f;
+        --surface-3: #1b1f27;
+        --hover-color: rgba(255, 255, 255, 0.06);
+        --border-color: #24272f;
+        --border-strong: #3b3f4a;
+        --font-mono:
+          "SFMono-Regular", "JetBrains Mono", "Roboto Mono", ui-monospace,
+          Menlo, Consolas, "Liberation Mono", monospace;
+
+        /* aliases kept for components that reference the older token names */
+        --bg: var(--background-color);
+        --panel: var(--surface-color);
+        --panel-2: var(--surface-2);
+        --panel-3: var(--surface-3);
+        --border: var(--border-color);
+        --text: var(--text-color);
+        --muted: var(--muted-color);
+        --accent: var(--primary-color);
+        --accent-hover: #8f9dff;
+        --green: #74c991;
+        --red: #e06c75;
+        --yellow: #d1b06b;
+        --purple: #b39ddb;
+        --radius: 0px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      body {
+        height: calc(100vh - 2px);
+        width: calc(100vw - 2px);
+        color: var(--text-color);
+        background-color: var(--background-color);
+        font-family: var(--font-mono);
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-size: 13px;
+        line-height: 1.5;
+        letter-spacing: 0.01em;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+      }
+
+      ::selection {
+        background: var(--primary-color);
+        color: var(--background-color);
+      }
+
+      button {
+        font-family: inherit;
+      }
+
+      input,
+      textarea,
+      select {
+        font-family: inherit;
+        font-size: 13px;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin: 0;
+        font-weight: 600;
+      }
+    </style>
   </head>
   <body data-sveltekit-preload-data="hover">
     <div style="display: contents">%sveltekit.body%</div>

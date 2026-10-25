@@ -35,7 +35,10 @@
     onclick={(e) => e.stopPropagation()}
   >
     <header>
-      <h3>{title}</h3>
+      <div class="head-titles">
+        <span class="label">Dialog</span>
+        <h3>{title}</h3>
+      </div>
       <button class="btn ghost icon" onclick={onclose} aria-label="Close">✕</button>
     </header>
     <div class="body">{@render children()}</div>
@@ -49,7 +52,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(1, 4, 9, 0.7);
+    background: rgba(2, 3, 5, 0.78);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,30 +63,39 @@
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    background: var(--surface-color);
+    border: 1px solid var(--border-strong);
+    border-radius: 0;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
   }
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .head-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
   }
   h3 {
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
   .body {
-    padding: 16px;
+    padding: 18px;
     overflow: auto;
   }
   footer {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    padding: 12px 16px;
-    border-top: 1px solid var(--border);
+    padding: 14px 18px;
+    border-top: 1px solid var(--border-color);
   }
 </style>

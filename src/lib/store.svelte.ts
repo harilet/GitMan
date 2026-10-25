@@ -18,14 +18,7 @@ import {
   type RecentProject,
 } from "./recents";
 
-export type ViewKey =
-  | "changes"
-  | "history"
-  | "graph"
-  | "branches"
-  | "remotes"
-  | "tags"
-  | "stashes";
+export type ViewKey = "changes" | "history" | "branches" | "tags" | "stashes";
 
 export interface DiffTarget {
   title: string;
