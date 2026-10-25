@@ -107,13 +107,18 @@ the OS credential manager, SSH agent and credential helpers work as configured.
 - [x] Tab shows project name, a dirty indicator, a per-tab busy spinner and a close button
 - [x] `＋` tab returns to the start screen to open another project
 - [x] Editorial monospace dark theme with a consistent design system
+- [x] **Accent color** customization (preset swatches + custom hex) applied live
+      and persisted locally
+- [x] **Settings** dialog with Appearance and Git identity sections; identity
+      can be saved per-repository or globally
 - [x] Toolbar **branch switcher**: shows the current branch name and opens a
       searchable dropdown of local + remote branches for quick switching
 - [x] Left navigation rail with live item counts — Changes, History (commit list
       and branch graph), Branches (local/remote branches and remotes), Tags, Stashes
-- [x] Top toolbar with Fetch / Pull / Push / Refresh / Identity
+- [x] Top toolbar with Fetch / Pull / Push / Refresh / Settings
 - [x] Busy spinner and toast notifications (info / success / error)
-- [x] Keyboard shortcuts: `Ctrl/Cmd + R` refresh, `Esc` closes dialogs
+- [x] Keyboard shortcuts: `Ctrl/Cmd + R` refresh, `Ctrl/Cmd + ,` settings,
+      `Esc` closes dialogs
 - [x] Modal dialogs for create/clone/add flows with validation
 - [x] Empty states throughout (no repo, clean tree, no commits, etc.)
 

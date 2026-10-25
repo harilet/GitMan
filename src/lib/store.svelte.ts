@@ -453,6 +453,8 @@ class AppStore {
   activeId = $state<string | null>(null);
   recents = $state<RecentProject[]>(sortRecents(loadRecents()));
 
+  settingsOpen = $state(false);
+
   toast = $state<{ kind: "info" | "error" | "success"; text: string } | null>(
     null,
   );

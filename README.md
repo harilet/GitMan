@@ -28,7 +28,7 @@ Repository: [github.com/harilet/git-gui]([https://github.com/harilet/GitWeft](ht
 - Stage, unstage, discard, stage-all and unstage-all (including deletions)
 - Per-file and per-commit diff viewer with inline highlighting
 - Commit with a message, plus `Ctrl/Cmd + Enter`
-- Git identity view/update (local or global)
+- Settings dialog with **appearance** (accent color) and **Git identity** (local or global)
 
 ### History and graph
 

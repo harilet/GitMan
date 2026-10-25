@@ -11,8 +11,6 @@
   import BranchSwitcher from "$lib/components/BranchSwitcher.svelte";
   import TitleBar from "$lib/components/TitleBar.svelte";
 
-  let showSettings = $state(false);
-
   const currentBranch = $derived(app.branches.find((b) => b.isHead));
   const toolbarRemote = $derived(
     app.remotes.find(
@@ -34,6 +32,11 @@
   ];
 
   function onkey(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && e.key === ",") {
+      e.preventDefault();
+      app.settingsOpen = true;
+      return;
+    }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r" && app.repo) {
       e.preventDefault();
       app.refreshAll();
@@ -88,8 +91,8 @@
             >
             <button
               class="btn sm"
-              title="Git identity (name / email)"
-              onclick={() => (showSettings = true)}>Identity</button
+              title="Settings (Ctrl+,)"
+              onclick={() => (app.settingsOpen = true)}>Settings</button
             >
           </div>
 
@@ -180,8 +183,8 @@
   <div class="toast {app.toast.kind}">{app.toast.text}</div>
 {/if}
 
-{#if showSettings}
-  <Settings onclose={() => (showSettings = false)} />
+{#if app.settingsOpen}
+  <Settings />
 {/if}
 
 <style>
