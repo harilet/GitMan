@@ -70,7 +70,7 @@
       title="Open a project"
       onclick={() => (app.activeId = null)}>+</button
     >
-  </div>test
+  </div>
 
   <div data-tauri-drag-region class="spacer"></div>
 
