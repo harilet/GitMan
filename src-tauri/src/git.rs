@@ -1405,7 +1405,7 @@ mod tests {
 
     fn init() -> TestRepo {
         let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let path = std::env::temp_dir().join(format!("gitman-test-{}-{n}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("gitweft-test-{}-{n}", std::process::id()));
         let _ = std::fs::remove_dir_all(&path);
         std::fs::create_dir_all(&path).unwrap();
         let repo = Repository::init(&path).unwrap();

@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    gitman_desktop_lib::run()
+    gitweft_desktop_lib::run()
 }

@@ -5,12 +5,13 @@ export interface RecentProject {
   lastOpened: number;
 }
 
-const KEY = "gitman.recents";
+const KEY = "gitweft.recents";
+const LEGACY_KEY = "gitman.recents";
 const MAX = 30;
 
 export function loadRecents(): RecentProject[] {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];

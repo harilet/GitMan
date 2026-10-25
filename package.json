@@ -1,7 +1,7 @@
 {
-  "name": "gitman-desktop",
+  "name": "gitweft-desktop",
   "version": "0.1.0",
-  "description": "GitMan - a desktop Git client",
+  "description": "GitWeft - a desktop Git client",
   "type": "module",
   "scripts": {
     "dev": "vite dev",

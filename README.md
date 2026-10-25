@@ -1,6 +1,6 @@
-# GitMan
+# GitWeft
 
-GitMan is a fast desktop Git client built with **Tauri 2**, **Rust**,
+GitWeft is a fast desktop Git client built with **Tauri 2**, **Rust**,
 **SvelteKit 5** and **TypeScript**.
 
 > **LLM note:** This project was developed with the assistance of an LLM, and
@@ -11,7 +11,7 @@ The app combines `git2` (libgit2) for fast local repository operations with the
 system `git` binary for network operations, so SSH agents, credential helpers and
 existing Git configuration work as expected.
 
-Repository: [github.com/harilet/git-gui]([https://github.com/harilet/GitMan](https://github.com/harilet/GitMan))
+Repository: [github.com/harilet/git-gui]([https://github.com/harilet/GitWeft](https://github.com/harilet/GitWeft))
 
 ## Features
 

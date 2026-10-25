@@ -37,7 +37,7 @@ let sessionCounter = 0;
 
 const LOG_PAGE = 300;
 const AUTO_FETCH_INTERVAL = 5 * 60 * 1000;
-const LAST_FETCH_KEY = "gitman.lastFetch";
+const LAST_FETCH_KEY = "gitweft.lastFetch";
 
 function lastFetchedAt(path: string): number {
   try {

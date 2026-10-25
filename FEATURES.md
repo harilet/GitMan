@@ -1,4 +1,4 @@
-# GitMan — Implemented Features
+# GitWeft — Implemented Features
 
 A desktop Git client built with **Tauri 2 (Rust)** and **SvelteKit 5**. Local
 repository operations are performed natively through `git2` (libgit2); network

@@ -1295,7 +1295,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gitman-desktop"
+name = "gitweft-desktop"
 version = "0.1.0"
 dependencies = [
  "git2",
